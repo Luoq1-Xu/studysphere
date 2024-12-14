@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/card"
 import { DayChart } from "./DayChart"
 import { useState, useEffect } from "react";
+import { Module } from "@/lib/types";
   
 type ChartData = {
     date: string,
     WorkloadHours: number,
-  }
+}
 
-export const Daycard = ({ data }: { data: ChartData[] }) => {
+export const Daycard = ({ data }: { data: Module[] }) => {
 
     const [today, setToday] = useState('');
 

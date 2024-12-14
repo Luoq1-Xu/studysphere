@@ -1,32 +1,9 @@
 import path from "path"
 import * as fs from "fs"
 import { parse } from 'csv-parse'
+import { headers, DetailedModuleInfo } from "@/lib/types"
 
-type ModuleInfo = {
-    moduleCode: string;
-    title: string;
-    description: string;
-    moduleCredit: number;
-    department: string;
-    faculty: string;
-    workload: string;
-    gradingBasisDescription: string;
-    semesterData: [
-        {
-            semester: number;
-            covidZones: string;
-        }
-    ]
-    prequisites: string;
-    preclusions: string;
-    attributes: string;
-    corequisites: string;
-
-}
- 
-export async function GET(
-    request: Request, 
-) {
+export async function GET( request: Request, ) {
     const url = new URL(request.url);
     const moduleCode = url.searchParams.get('moduleCode');
     console.log(moduleCode);
@@ -35,29 +12,14 @@ export async function GET(
         return new Response(JSON.stringify({ error: 'Module code is required' }), { status: 400 });
     }
 
-    const headers = [
-        'moduleCode',
-        'title',
-        'description',
-        'moduleCredit',
-        'department',
-        'faculty',
-        'workload',
-        'gradingBasisDescription',
-        'semesterData',
-        'prequisites',
-        'preclusions',
-        'attributes',
-        'corequisites'
-    ];
-    const csvfile = path.join(process.cwd(), 'public', 'moduleInfo.csv');
+    const csvfile = path.join(process.cwd(), 'public', 'detailed_module_info.csv');
     const fileContent = fs.readFileSync(csvfile, 'utf8');
 
     return new Promise((resolve, reject) => {
         parse(fileContent, {
             delimiter: ',',
             columns: headers
-        }, (err, records: ModuleInfo[]) => {
+        }, (err, records: DetailedModuleInfo[]) => {
             if (err) {
                 console.error('Error parsing CSV file:', err);
                 reject(new Response(JSON.stringify({ error: err.message }), { status: 500 }));

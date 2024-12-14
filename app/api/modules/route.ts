@@ -18,7 +18,8 @@ export async function GET() {
     return new Promise((resolve, reject) => {
         parse(fileContent, {
             delimiter: ',',
-            columns: headers
+            columns: headers,
+            from_line: 2,
         }, (err, records: Module[]) => {
             if (err) {
                 reject(new Response(JSON.stringify({ error: err.message }), { status: 500 }));

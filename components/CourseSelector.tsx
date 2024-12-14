@@ -20,7 +20,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Card } from "./ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "./ui/skeleton"
 
 type mod = {
   code: string
@@ -32,10 +33,11 @@ interface CourseSelectorProps {
   onCourseSelect: (course: mod) => void;
 }
 
-export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
+export function CourseSelector({ onCourseSelect }: CourseSelectorProps) {
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState("")
   const [search, setSearch] = React.useState("")
+  const listRef = React.useRef<List>(null);
 
   const {
     data: mods,
@@ -53,8 +55,26 @@ export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
     staleTime: Infinity,
   })
 
+  React.useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTo(0);
+    }
+  }, [search]);
+
   if (isLoading) {
-    return <Card className="w-[400px] justify-between mx-5 inline">Loading...</Card>
+    return (
+      <Popover open={false}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-between mx-5"
+            disabled
+          >
+            Loading...
+          </Button>
+        </PopoverTrigger>
+      </Popover>
+    )
   }
 
   if (isError) {
@@ -72,7 +92,7 @@ export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
     if (filteredModules.length === 0 || !mod) {
       return (
         <div style={style}>
-          <CommandItem disabled>No modules found</CommandItem>
+          No modules found
         </div>
       );
     }
@@ -81,7 +101,7 @@ export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
       <CommandItem
         key={mod.code}
         value={mod.code + " " + mod.title}
-        onSelect={(currentValue) => {
+        onSelect={(currentValue: string) => {
           setValue(currentValue === value ? "" : currentValue)
           setOpen(false)
           onCourseSelect(mod)
@@ -100,7 +120,13 @@ export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
   }
 
   if (!mods) {
-    return <Card className="w-[400px] justify-between mx-5">No Mods Available</Card>
+    return (
+      <Card>
+        <CardContent>
+          <Skeleton className="w-full justify-between mx-5"/>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -110,7 +136,7 @@ export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[400px] justify-between mx-5"
+          className="w-full justify-between mx-5"
         >
           {value
             ? mods?.find((mod: mod) => mod.code + " " + mod.title === value)?.title
@@ -118,7 +144,7 @@ export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-5">
+      <PopoverContent className="w-full p-5">
         <Command>
           <CommandInput 
             placeholder="Search mod..." 
@@ -128,12 +154,15 @@ export function CourseSelector( { onCourseSelect }: CourseSelectorProps) {
             <CommandEmpty>No mods found.</CommandEmpty>
             <CommandGroup>
               <List
+                ref={listRef}
                 height={400}
-                itemCount={mods.length}
+                itemCount={filteredModules.length}
                 itemSize={40}
-                width={500}
+                width={600}
               >
-                {Row}
+                {({ index, style }) => (
+                  <Row index={index} style={style} />
+                )}
               </List>
             </CommandGroup>
           </CommandList>

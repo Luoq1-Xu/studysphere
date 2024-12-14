@@ -1,0 +1,71 @@
+export const headers = [
+    'acadYear',
+    'description',
+    'title',
+    'additionalInformation',
+    'department',
+    'faculty',
+    'workload',
+    'gradingBasisDescription',
+    'moduleCredit',
+    'moduleCode',
+    'semesterData',
+    'preclusion',
+    'preclusionRule',
+    'prerequisite',
+    'prerequisiteRule',
+    'attributes',
+    'fufillRequirements',
+    'prereqTree',
+    'corequisite',
+    'corequisiteRule',
+    'prerequisiteAdvisory',
+    'aliases'
+];
+
+export type DetailedModuleInfo = {
+    acadYear: string;
+    description: string;
+    title: string;
+    additionalInformation: string;
+    department: string;
+    faculty: string;
+    workload: string;
+    gradingBasisDescription: string;
+    moduleCredit: number;
+    moduleCode: string;
+    semesterData: 
+        {
+            semester: number;
+            timetable:
+                {
+                    classNo: string;
+                    startTime: string;
+                    endTime: string;
+                    weeks: number[];
+                    venue: string;
+                    day: string;
+                    lessonType: string;
+                    size: number;
+                    covidZones: string;
+                }[];
+            covidZones: string;
+        }[];
+    preclusion: string;
+    preclusionRule: string;
+    prerequisite: string;
+    prerequisiteRule: string;
+    attributes: string;
+    fufillRequirements: string;
+    prereqTree: string;
+    corequisite: string;
+    corequisiteRule: string;
+    prerequisiteAdvisory: string;
+    aliases: string;
+}
+
+export type Module = {
+    code: string;
+    title: string;
+    semesters: string;
+}
