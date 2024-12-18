@@ -5,10 +5,9 @@ import { headers, DetailedModuleInfo } from "@/lib/types"
 
 export async function GET( request: Request, ) {
     const url = new URL(request.url);
-    const moduleCode = url.searchParams.get('moduleCode');
-    console.log(moduleCode);
+    const moduleCodes = url.searchParams.getAll('moduleCode');
 
-    if (!moduleCode) {
+    if (!moduleCodes) {
         return new Response(JSON.stringify({ error: 'Module code is required' }), { status: 400 });
     }
 
@@ -24,12 +23,11 @@ export async function GET( request: Request, ) {
                 console.error('Error parsing CSV file:', err);
                 reject(new Response(JSON.stringify({ error: err.message }), { status: 500 }));
             } else {
-                const record = records.find(r => r.moduleCode == moduleCode);
-                if (record) {
-                    resolve(new Response(JSON.stringify(record), { status: 200 }));
-                } else {
-                    resolve(new Response(JSON.stringify({ error: 'Module not found' }), { status: 404 }));
-                }
+                const results = moduleCodes.map(moduleCode => {
+                    const record = records.find(r => r.moduleCode == moduleCode);
+                    return record ? record : { error: 'Module not found', moduleCode };
+                });
+                resolve(new Response(JSON.stringify(results), { status: 200 }));
             }
         });
     });

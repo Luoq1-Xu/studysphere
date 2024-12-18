@@ -69,3 +69,21 @@ export type Module = {
     title: string;
     semesters: string;
 }
+
+export type ModuleSchedule = {
+    moduleCode: string;
+    moduleTitle: string;
+    description: string;
+    lessons: {
+        lessonType: string;
+        lessonNumber: string;
+        startTime: string;
+        endTime: string;
+        venue: string;
+        day: string;
+        size: number;
+        weeks: number[];
+    }[];
+}
+
+export type LessonRecord = Record<string, Record<string, string | undefined>>;

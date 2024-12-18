@@ -18,6 +18,11 @@ export function convertLessonType(lessonType: string): string {
   return lessonTypeMapping[lessonType] || lessonType; // Return the original string if no mapping is found
 };
 
+// Function to reverse lesson type
+export function reverseLessonType(lessonType: string): string {
+  return Object.keys(lessonTypeMapping).find(key => lessonTypeMapping[key] === lessonType) || lessonType; // Return the original string if no mapping is found
+};
+
 export function parseFunc(input: string): unknown {
   try {
     const sanitised = input.replace(/'/g, '"');
@@ -28,3 +33,7 @@ export function parseFunc(input: string): unknown {
     return "";
   }
 };
+
+export function convertToHour(time: string): number {
+  return parseInt(time.slice(0, 2));  
+}

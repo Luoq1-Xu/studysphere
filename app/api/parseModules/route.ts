@@ -19,10 +19,7 @@ export async function GET(request: Request) {
         const searchParams = new URLSearchParams(new URL(fullUrl).search);
         const modules: Record<string, Record<string, string>> = {};
 
-        console.log('Full URL:', fullUrl);
-
         searchParams.forEach((value, key) => {
-            console.log('Key:', key, 'Value:', value);
             const moduleCode = key;
             if (!modules[moduleCode]) {
                 modules[moduleCode] = {};
@@ -34,6 +31,19 @@ export async function GET(request: Request) {
         });
     
         console.log('Parsed Modules:', modules);
+
+        // Check if "hidden" key exists in the modules object
+        if (modules.hidden) {
+            // Iterate over each key in modules["hidden"]
+            Object.keys(modules.hidden).forEach((hiddenKey) => {
+                // Remove the corresponding key from the modules object if it exists
+                if (modules[hiddenKey]) {
+                    delete modules[hiddenKey];
+                }
+            });
+        }
+
+
         return new Response(JSON.stringify(modules), { status: 200 });
     } catch (error) {
         console.error('Error expanding URL:', error);

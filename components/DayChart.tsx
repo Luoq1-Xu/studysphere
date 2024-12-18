@@ -17,11 +17,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-
-type ChartData = {
-  date: string,
-  WorkloadHours: number,
-}
+import { ModuleSchedule } from "@/lib/types"
 
 const chartConfig = {
   WorkloadHours: {
@@ -57,7 +53,50 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function DayChart({ data }: { data: ChartData[] }) {
+export function DayChart({ modData }: { modData: ModuleSchedule[] }) {
+
+  const data = [
+    {
+      date: "Monday",
+      WorkloadHours: 0,
+    },
+    {
+      date: "Tuesday",
+      WorkloadHours: 0,
+    },
+    {
+      date: "Wednesday",
+      WorkloadHours: 0,
+    },
+    {
+      date: "Thursday",
+      WorkloadHours: 0,
+    },
+    {
+      date: "Friday",
+      WorkloadHours: 0,
+    },
+    {
+      date: "Saturday",
+      WorkloadHours: 0,
+    },
+    {
+      date: "Sunday",
+      WorkloadHours: 0,
+    }
+  ]
+
+  for (const mod of modData) {
+    for (const lesson of mod.lessons) {
+      const day = lesson.day
+      const startTime = lesson.startTime
+      const endTime = lesson.endTime
+      const duration = (parseTime(endTime) - parseTime(startTime)) / 60
+      const index = data.findIndex((d) => d.date === day)
+      data[index].WorkloadHours += duration
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -65,20 +104,20 @@ export function DayChart({ data }: { data: ChartData[] }) {
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="min-h-[200px]">
           <BarChart
             accessibilityLayer
             data={data}
             layout="vertical"
             margin={{
-              left: 0,
+              left: 20,
             }}
           >
             <YAxis
               dataKey="date"
               type="category"
               tickLine={false}
-              tickMargin={-10}
+              tickMargin={10}
               axisLine={false}
               tickFormatter={(value) =>
                 chartConfig[value as keyof typeof chartConfig]?.label
@@ -89,18 +128,25 @@ export function DayChart({ data }: { data: ChartData[] }) {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="visitors" layout="vertical" radius={5} />
+            <Bar dataKey="WorkloadHours" radius={5} />
           </BarChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+          Trending up by 5.2% this month <TrendingUp className="h-4 w-4"/>
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Showing weekly workload
         </div>
       </CardFooter>
     </Card>
   )
+}
+
+
+function parseTime(time: string): number {
+  const hours = parseInt(time.slice(0, 2), 10);
+  const minutes = parseInt(time.slice(2, 4), 10);
+  return hours * 60 + minutes;
 }

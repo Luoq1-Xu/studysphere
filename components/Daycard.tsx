@@ -3,21 +3,16 @@
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
 import { DayChart } from "./DayChart"
 import { useState, useEffect } from "react";
-import { Module } from "@/lib/types";
+import { ModuleSchedule } from "@/lib/types";
   
-type ChartData = {
-    date: string,
-    WorkloadHours: number,
-}
 
-export const Daycard = ({ data }: { data: Module[] }) => {
+export const Daycard = ({ modData }: { modData: ModuleSchedule[] }) => {
 
     const [today, setToday] = useState('');
 
@@ -36,10 +31,9 @@ export const Daycard = ({ data }: { data: Module[] }) => {
     <Card>
         <CardHeader>
             <CardTitle>{today}</CardTitle>
-            <CardDescription>Card Description</CardDescription>
         </CardHeader>
         <CardContent>
-            <DayChart data={data} />
+            <DayChart modData={modData} />
         </CardContent>
         <CardFooter>
             <p>Card Footer</p>

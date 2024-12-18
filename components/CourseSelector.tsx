@@ -55,12 +55,6 @@ export function CourseSelector({ onCourseSelect }: CourseSelectorProps) {
     staleTime: Infinity,
   })
 
-  React.useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollTo(0);
-    }
-  }, [search]);
-
   if (isLoading) {
     return (
       <Popover open={false}>
@@ -136,7 +130,7 @@ export function CourseSelector({ onCourseSelect }: CourseSelectorProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between mx-5"
+          className="w-full justify-between"
         >
           {value
             ? mods?.find((mod: mod) => mod.code + " " + mod.title === value)?.title
