@@ -57,7 +57,7 @@ export function CourseSelector({ onCourseSelect }: CourseSelectorProps) {
 
   if (isLoading) {
     return (
-      <Popover open={false}>
+      <Popover open={false} modal={true}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -124,7 +124,7 @@ export function CourseSelector({ onCourseSelect }: CourseSelectorProps) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

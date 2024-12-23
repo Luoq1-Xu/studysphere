@@ -1,7 +1,7 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, Legend, Tooltip, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -14,122 +14,118 @@ import {
 import {
   ChartConfig,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart"
 import { ModuleSchedule } from "@/lib/types"
 
-const chartConfig = {
-  WorkloadHours: {
-    label: "Hours",
-  },
-  Monday: {
-    label: "Monday",
-    color: "hsl(var(--chart-1))",
-  },
-  Tuesday: {
-    label: "Tuesday",
-    color: "hsl(var(--chart-2))",
-  },
-  Wednesday: {
-    label: "Wednesday",
-    color: "hsl(var(--chart-3))",
-  },
-  Thursday: {
-    label: "Thursday",
-    color: "hsl(var(--chart-4))",
-  },
-  Friday: {
-    label: "Friday",
-    color: "hsl(var(--chart-5))",
-  },
-  Saturday: {
-    label: "Saturday",
-    color: "hsl(var(--chart-6))",
-  },
-  Sunday: {
-    label: "Sunday",
-    color: "hsl(var(--chart-7))",
-  },
-} satisfies ChartConfig
-
 export function DayChart({ modData }: { modData: ModuleSchedule[] }) {
 
-  const data = [
+  interface WorkloadData {
+    date: string;
+    modules: {
+      [moduleCode: string]: number;
+    };
+  }
+
+  const data: WorkloadData[] = [
     {
       date: "Monday",
-      WorkloadHours: 0,
+      modules: {},
     },
     {
       date: "Tuesday",
-      WorkloadHours: 0,
+      modules: {},
     },
     {
       date: "Wednesday",
-      WorkloadHours: 0,
+      modules: {},
     },
     {
       date: "Thursday",
-      WorkloadHours: 0,
+      modules: {},
     },
     {
       date: "Friday",
-      WorkloadHours: 0,
+      modules: {},
     },
     {
       date: "Saturday",
-      WorkloadHours: 0,
+      modules: {},
     },
     {
       date: "Sunday",
-      WorkloadHours: 0,
-    }
-  ]
+      modules: {},
+    },
+  ];
+
+  interface chartConfigType {
+    [moduleCode: string]: {
+      label: string;
+      color: string;
+    };
+  }
+
+  const chartConfig: chartConfigType = {} satisfies ChartConfig;
 
   for (const mod of modData) {
+    const modCode = mod.moduleCode
+    for (const item of data) {
+      item.modules[modCode] = 0;
+    }
+    chartConfig[modCode] = {
+      label: mod.moduleCode + " " + mod.moduleTitle,
+      color: getColor(data.length),
+    }
     for (const lesson of mod.lessons) {
       const day = lesson.day
       const startTime = lesson.startTime
       const endTime = lesson.endTime
       const duration = (parseTime(endTime) - parseTime(startTime)) / 60
       const index = data.findIndex((d) => d.date === day)
-      data[index].WorkloadHours += duration
+      data[index].modules[modCode] += duration
     }
   }
 
+  const flattenedData = data.map((item) => ({
+    date: item.date,
+    ...item.modules,
+  }));
+
+  // Get module codes
+  const moduleCodes = Array.from(
+    new Set(
+      data.flatMap((item) => Object.keys(item.modules))
+    )
+  );
+
   return (
-    <Card>
+    <Card className="min-w-36 w-3/4">
       <CardHeader>
-        <CardTitle>Weekly Workload</CardTitle>
+        <CardTitle>Weekly Lesson Time</CardTitle>
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[200px]">
-          <BarChart
-            accessibilityLayer
-            data={data}
-            layout="vertical"
-            margin={{
-              left: 20,
-            }}
-          >
-            <YAxis
-              dataKey="date"
-              type="category"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) =>
-                chartConfig[value as keyof typeof chartConfig]?.label
-              }
-            />
-            <XAxis dataKey="WorkloadHours" type="number" hide />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Bar dataKey="WorkloadHours" radius={5} />
-          </BarChart>
+        <ChartContainer config={chartConfig}>
+          <AreaChart
+            width={500}
+            height={300}
+            data={flattenedData}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <XAxis dataKey="date" />
+              <YAxis  label={{ value: 'Workload in hours', angle: -90, position: 'insideLeft' }}/>
+              <Tooltip />
+              <Legend />
+                {moduleCodes.map((code, index) => (
+                  <Area
+                    key={code}
+                    type="step"
+                    dataKey={code}
+                    stackId="1"
+                    stroke={getColor(index)}
+                    fill={getColor(index)}
+                  />
+                ))}
+            </AreaChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
@@ -149,4 +145,10 @@ function parseTime(time: string): number {
   const hours = parseInt(time.slice(0, 2), 10);
   const minutes = parseInt(time.slice(2, 4), 10);
   return hours * 60 + minutes;
+}
+
+// Helper function to assign colors
+function getColor(index: number) {
+  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#387908'];
+  return colors[index % colors.length];
 }

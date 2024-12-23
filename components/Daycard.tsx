@@ -3,7 +3,6 @@
 import {
     Card,
     CardContent,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -30,14 +29,13 @@ export const Daycard = ({ modData }: { modData: ModuleSchedule[] }) => {
     return (
     <Card>
         <CardHeader>
-            <CardTitle>{today}</CardTitle>
+            <CardTitle>Today is {today}.</CardTitle>
         </CardHeader>
         <CardContent>
-            <DayChart modData={modData} />
+            <div className="flex justify-center">
+                <DayChart modData={modData} />
+            </div>
         </CardContent>
-        <CardFooter>
-            <p>Card Footer</p>
-        </CardFooter>
     </Card>
       )
     }

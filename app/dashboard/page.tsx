@@ -1,19 +1,18 @@
 "use client"
 import { CourseSelector } from "@/components/CourseSelector";
-import { NavBar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
-import { DetailedModuleInfo, Module, ModuleSchedule } from "@/lib/types";
-import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
+import { DetailedModuleInfo, CustomEvent, Module, ModuleSchedule } from "@/lib/types";
 import { useQuery } from "react-query";
-import { TestWorkloadCard } from "@/components/TestWorkLoadCard";
+import { WorkLoadDistribution } from "@/components/WorkloadDistribution";
 import { ModuleCard } from "@/components/ModuleCard";
 import { ImportModules } from "@/components/ImportModules";
 import { LessonsCard } from "@/components/LessonsCard";
 import { Daycard } from "@/components/Daycard";
 import { WeeklyCalendar } from "@/components/WeeklyCalendar";
 import { convertLessonType, parseFunc } from "@/lib/utils";
+import { CreateEvent } from "@/components/CreateEvent";
+import { ClearCourses } from "@/components/ClearCourses";
 
 export default function Page() {
 
@@ -23,14 +22,13 @@ export default function Page() {
     // lessonsData -> 1 object with key-value pairs where key = moduleCode and value = lesson details
     // modScheduleData -> Array of module schedules
 
-
-
     const name = "StudySphere";
     const [selectedCourses, setSelectedCourses] = useState<Module[]>([]);
     const [modulesData, setModulesData] = useState<DetailedModuleInfo[]>([]);
     const [importUrl, setImportUrl] = useState<string | null>(null);
     const [lessonsData, setLessonsData] = useState<Record<string, Record<string, string>>>({});
     const [modScheduleData, setModScheduleData] = useState<ModuleSchedule[]>([]);
+    const [events, setEvents] = useState<CustomEvent[]>([]);
     const prevModulesDataRef = useRef<DetailedModuleInfo[]>([]);
     const prevSelectedCoursesRef = useRef<Module[]>([]);
 
@@ -101,7 +99,6 @@ export default function Page() {
             setModScheduleData((prevData) => [...prevData, ...updatedLessonDetails]);
 
             setLessonsData(newLessonData);
-            
         } catch (error) {
             console.error("Error fetching module info somewhere:", error);
         }
@@ -118,6 +115,13 @@ export default function Page() {
           prevSelectedCoursesRef.current = prevCourses;
           return [...prevCourses, course]; // Add the new course to the array
         });
+    };
+
+    // Handle event creation
+    const handleEventAdd = (event: CustomEvent) => {
+        setEvents((prevEvents) => [...prevEvents, event]);
+        console.log("Event added:", event);
+        console.log("Events:", events);
     };
 
     // Fetch module info from API based on selected courses
@@ -151,12 +155,13 @@ export default function Page() {
         }
       }, [isLoading, isError, newModulesData]);
 
+    // Handle modules import from NUSMods
     const handleModuleImport = (url: string) => {
         console.log(url);
         setImportUrl(url);
     };
 
-    // Use useEffect to clear modulesData, lessonsData, and modScheduleData when selectedCourses is set to empty
+    // Use useEffect to update lessonsData and modScheduleData when selectedCourses changes
     useEffect(() => {
         if (selectedCourses.length === 0) {
             setModulesData([]);
@@ -228,6 +233,7 @@ export default function Page() {
             setModScheduleData(lessonDetails);
 
             console.log("lesson details", lessonDetails);
+            console.log("BRAHHHHHHHHHHHHH")
 
             // Clear the importUrl after processing
             setImportUrl(null);
@@ -238,6 +244,7 @@ export default function Page() {
         }
     }, [importUrl]);
 
+    // Fetch module info from API based on selected courses
     useEffect(() => {
         if (!isLoading && !isError) {
           const hasDataChanged = JSON.stringify(newModulesData) !== JSON.stringify(prevModulesDataRef.current);
@@ -248,27 +255,63 @@ export default function Page() {
         }
       }, [isLoading, isError, newModulesData]);
 
+
+    // Update Events when modScheduleData changes
+    useEffect(() => {
+        const COLOURS = ['coral', 'yellow', 'pink', 'green', 'blue', 'purple', 'teal', 'gray', 'rose']
+
+        let modIndex = 0;
+        // flatten the modScheduleData to get the lesson details
+        const newEvents = modScheduleData.flatMap((module) => {
+            modIndex++;
+            return module.lessons.map((lesson) => {
+                return {
+                    eventName: `${module.moduleCode}`,
+                    eventDescription: `${lesson.lessonType} ${lesson.lessonNumber}`,
+                    eventLocation: lesson.venue,
+                    isRecurring: true,
+                    startDateAndTime: new Date(),
+                    endDateAndTime: new Date(),
+                    dayOfWeek: lesson.day,
+                    recurringStartTime: {
+                        hour: lesson.startTime.slice(0, 2),
+                        minute: lesson.startTime.slice(2),
+                    },
+                    recurringEndTime: {
+                        hour: lesson.endTime.slice(0, 2),
+                        minute: lesson.endTime.slice(2),
+                    },
+                    weeks: lesson.weeks,
+                    type: 'lesson',
+                    color: COLOURS[modIndex % COLOURS.length],
+                } as CustomEvent;
+            });
+        });
+
+        console.log(newEvents);
+        
+        setEvents((prevEvents) => {
+            // 1) Filter out only user-created events (assuming user-created events have a type property set to 'user')
+            const userEvents = prevEvents.filter((e) => e.type === 'user');
+        
+            // 2) Combine user events with newly generated module-based events
+            return [...userEvents, ...newEvents];
+          });
+
+
+    }, [modScheduleData]);
+
     return (
         <div className="flex min-h-screen w-full flex-col bg-beige p-5">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-row justify-between">
-                <NavBar/>
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-row justify-start gap-4">
+                <CreateEvent onEventAdd={ handleEventAdd }/>
                 <ImportModules onUrlImport={ handleModuleImport }/>
             </div>
-            <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+            <div className="container mx-auto p-2 sm:p-6 lg:p-8">
                 <h1 className="text-2xl sm:text-4xl font-bold">Dashboard</h1>
                 <p className="text-base sm:text-lg text-center sm:text-left my-5">Welcome back, {name}.</p>
                 <div className="flex flex-col sm:flex-row items-start justify-start gap-4">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button>Clear Courses</Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-60 p-5 bg-white shadow-lg rounded-md">
-                            <div className="grid gap-4">
-                                Are you sure? This action cannot be undone.
-                                <Button variant="destructive" onClick={() => setSelectedCourses([])}> Clear All Courses </Button>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+                    <ClearCourses setSelectedCourses={ setSelectedCourses } />
                     <CourseSelector onCourseSelect={ handleCourseSelect } />
                 </div>
             </div>
@@ -289,7 +332,7 @@ export default function Page() {
                                 </CardContent>
                             </Card>
                         </div>
-                        <TestWorkloadCard modulesData={modulesData} />
+                        <WorkLoadDistribution modulesData={modulesData} />
                         <LessonsCard data={modScheduleData} />   
                     </div>
                 </div>
@@ -300,7 +343,7 @@ export default function Page() {
                 </div>
                 <div className="flex flex-1 flex-col gap-4 md:gap-8 py-5">
                     <div className="grid gap-4 md:grid-cols-1">
-                        <WeeklyCalendar moduleScheduleData={modScheduleData}/>
+                        <WeeklyCalendar events={events}/>
                     </div>
                 </div>
             </div>

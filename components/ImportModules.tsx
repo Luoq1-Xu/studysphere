@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,10 @@ export function ImportModules({ onUrlImport }: CourseSelectorProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Import Modules</Button>
+        <Button variant="outline">
+          Import Modules from
+          <Image src="/nusmods.png" alt="NUSMods" width={60} height={60}/>  
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

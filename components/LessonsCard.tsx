@@ -6,7 +6,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 export function LessonsCard({ data }: { data: ModuleSchedule[] }) {
 
     return (
-        <Card>
+        <Card className="w-full">
             <CardHeader>Lessons</CardHeader>
             <CardContent>
                 <Table>
@@ -20,7 +20,11 @@ export function LessonsCard({ data }: { data: ModuleSchedule[] }) {
                     <TableBody>
                     {data.map((modScheduleData) => (
                         <TableRow key={modScheduleData.moduleCode}>
-                            <TableCell>{modScheduleData.moduleTitle}</TableCell>
+                            <TableCell>
+                                {modScheduleData.moduleCode}
+                                <br/>
+                                {modScheduleData.moduleTitle}
+                            </TableCell>
                             <TableCell>
                             {modScheduleData.lessons.map((lesson) => (
                                 <div key={modScheduleData.moduleCode + lesson.lessonType + lesson.day + lesson.startTime}>

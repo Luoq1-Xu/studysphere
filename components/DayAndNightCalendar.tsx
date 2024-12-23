@@ -1,3 +1,6 @@
+'use Client'
+
+
 'use client'
 
 import { useState } from 'react'
@@ -5,64 +8,82 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EventCard } from '@/components/EventCard'
 import { convertToHour } from '@/lib/utils'
+import { ModuleSchedule } from '@/lib/types'
+import { Switch } from './ui/switch'
+import { Label } from './ui/label'
 
 interface Event {
   id: string
   courseCode: string
   type: string
   location: string
-  weeks: string
+  weeks: number[]
   startTime: string
   endTime: string
+  startHour: number
+  endHour: number
   day: number
-  color: 'coral' | 'yellow' | 'pink' | 'green'
+  color: 'coral' | 'yellow'| 'pink' | 'green' | 'blue' | 'purple' | 'teal' | 'gray'
 }
 
+const COLOURS = ['coral', 'yellow', 'pink', 'green', 'blue', 'purple', 'teal', 'gray']
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI']
-const HOURS = Array.from({ length: 10 }, (_, i) => i + 8)
+const FULLDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const DAYHOURS = Array.from({ length: 12 }, (_, i) => i + 8)
+const WEEKOPTIONS = [0, 1, 2, 3, 4, 5, 6, "Recess Week", 7, 8, 9, 10, 11, 12, 13, "Reading Week", "Examination Week 1", "Examination Week 2"];
 
-// Sample data
-const events: Event[] = [
-  {
-    id: '1',
-    courseCode: 'CS2040S',
-    type: 'LAB [02]',
-    location: 'COM1-B108',
-    weeks: 'Weeks 3-13',
-    startTime: '1000',
-    endTime: '1200',
-    day: 0,
-    color: 'coral'
-  },
-  {
-    id: '2',
-    courseCode: 'CS2030S',
-    type: 'LAB [01]',
-    location: 'COM1-B103',
-    weeks: 'Weeks 3-13',
-    startTime: '1700',
-    endTime: '1800',
-    day: 0,
-    color: 'yellow'
-  },
-  // Add more events as needed
-]
-
-events.map((event) => {
-    const startHour = convertToHour(event.startTime)
-    const endHour = convertToHour(event.endTime)
-    return {
-        ...event,
-        startHour: startHour,
-        endHour: endHour,
-    }
-})
-
-export function WeeklyCalendar() {
+export function WeeklyCalendar({ moduleScheduleData }: { moduleScheduleData: ModuleSchedule[] }) {
   const [currentWeek, setCurrentWeek] = useState(1)
 
+  let eventId = 0;
+  let modId = 0;
+  const events: Event[] = moduleScheduleData.flatMap((module) => {
+    modId++;
+    return module.lessons.map((lesson) => {
+        return {
+            id: (eventId++).toString(),
+            courseCode: module.moduleCode,
+            type: lesson.lessonType,
+            location: lesson.venue,
+            weeks: lesson.weeks,
+            startTime: lesson.startTime,
+            endTime: lesson.endTime,
+            startHour: convertToHour(lesson.startTime),
+            endHour: convertToHour(lesson.endTime),
+            day: FULLDAYS.indexOf(lesson.day),
+            color: COLOURS[modId % COLOURS.length],
+        } as Event;
+    });
+  });
+  
   return (
     <div className="w-full h-full bg-gray-900 text-gray-200 p-4 rounded-lg">
+      
+      {/* Options */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
+          <label htmlFor="week-selector" className="block text-sm font-medium text-gray-200">Select Week:</label>
+          <select
+            id="week-selector"
+            value={currentWeek}
+            onChange={(e) => setCurrentWeek(Number(e.target.value))}
+            className="mt-1 block w-full pl-3 pr-10 py-2 text-slate-950 border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            {WEEKOPTIONS.map((week, index) => (
+              <option key={index} value={index}>
+                {typeof week === 'number' ? `Week ${week}` : week}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch id="airplane-mode" />
+          <Label htmlFor="airplane-mode">Airplane Mode</Label>
+        </div>
+      </div>
+
+
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button
@@ -82,12 +103,20 @@ export function WeeklyCalendar() {
         </Button>
       </div>
 
+
+
+      {/* Week Selector */}
+      
+
       {/* Calendar Grid */}
-      <div className="relative w-full border border-gray-800 rounded-lg">
+      <div className="w-full border border-gray-800 rounded-lg">
         {/* Time Headers */}
-        <div className="grid grid-cols-[60px_repeat(10,1fr)] border-b border-gray-800">
+        <div
+          className="grid border-b border-gray-800"
+          style={{ gridTemplateColumns: `60px repeat(12, minmax(0, 1fr))` }}
+        >
           <div className="h-12" /> {/* Empty corner */}
-          {HOURS.map(hour => (
+          {DAYHOURS.map(hour => (
             <div
               key={hour}
               className="h-12 border-l border-gray-800 flex items-center justify-center text-sm"
@@ -101,15 +130,16 @@ export function WeeklyCalendar() {
         <div className="relative">
           {DAYS.map((day, dayIndex) => (
             <div
-              key={day}
-              className="grid grid-cols-[60px_repeat(10,1fr)] border-b border-gray-800 last:border-b-0"
+            key={day}
+            className="relative grid border-b border-gray-800 last:border-b-0"
+            style={{ gridTemplateColumns: `60px repeat(12, minmax(0, 1fr))` }}
             >
                 <div className="h-20 flex items-center justify-center text-sm font-medium">
                     {day}
                 </div>
 
                 {/* Vertical grid lines */}
-                {HOURS.map(hour => (
+                {DAYHOURS.map(hour => (
                         <div
                         key={hour}
                         className="h-20 border-l border-gray-800"
@@ -118,7 +148,7 @@ export function WeeklyCalendar() {
               
                 {/* Events for this day */}
                 {events
-                    .filter((event) => event.day === dayIndex)
+                    .filter((event) => event.day === dayIndex && event.weeks.includes(currentWeek))
                     .map((event) => {
                     const startHour = convertToHour(event.startTime);
                     const endHour = convertToHour(event.endTime);
@@ -126,8 +156,8 @@ export function WeeklyCalendar() {
                     const endMinutes = parseInt(event.endTime.slice(2), 10);
 
                     // Calculate the total number of minutes in the schedule
-                    const scheduleStartTime = HOURS[0] * 60;
-                    const scheduleEndTime = HOURS[HOURS.length - 1] * 60 + 60;
+                    const scheduleStartTime = DAYHOURS[0] * 60;
+                    const scheduleEndTime = DAYHOURS[DAYHOURS.length - 1] * 60 + 60;
 
                     const eventStartTime = startHour * 60 + startMinutes;
                     const eventEndTime = endHour * 60 + endMinutes;
@@ -141,8 +171,6 @@ export function WeeklyCalendar() {
                         ((eventEndTime - eventStartTime) /
                         (scheduleEndTime - scheduleStartTime)) *
                         100;
-
-                    console.log(eventStartPercent, eventDurationPercent);
 
                     return (
                         <EventCard

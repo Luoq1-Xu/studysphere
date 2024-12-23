@@ -1,17 +1,18 @@
 interface EventCardProps {
   event: {
-    id: string
-    courseCode: string
-    type: string
-    location: string
-    weeks: number[]
-    startTime: string
-    endTime: string
-    startHour: number
-    endHour: number
-    day: number
-    color: 'coral' | 'yellow'| 'pink' | 'green' | 'blue' | 'purple' | 'teal' | 'gray'
-  };
+    id: string;
+    name: string;
+    description: string;
+    location: string;
+    weeks: number[];
+    startHour: number;
+    endHour: number;
+    startMinutes: number;
+    endMinutes: number;
+    day: number;
+    color: 'coral' | 'yellow'| 'pink' | 'green' | 'blue' | 'purple' | 'teal' | 'gray' | 'rose';
+
+  }; // Event data
   leftOffset: number; // Percentage value for 'left' position
   width: number;      // Percentage value for 'width'
 }
@@ -26,6 +27,7 @@ const colorMap = {
     purple: 'bg-purple-200/90 text-purple-950',
     teal: 'bg-teal-200/90 text-teal-950',
     gray: 'bg-gray-200/90 text-gray-950',
+    rose: 'bg-rose-200/90 text-rose-950',
   };
 
 export function EventCard({ event, leftOffset, width }: EventCardProps) {
@@ -41,10 +43,10 @@ export function EventCard({ event, leftOffset, width }: EventCardProps) {
             zIndex: 1,
         }}
         >
-        <div className="font-bold">{event.courseCode}</div>
-        <div>{event.type}</div>
+        <div className="font-bold">{event.name}</div>
+        <div>{event.description}</div>
         <div>{event.location}</div>
-        <div className="text-[10px] mt-1 opacity-75">Weeks {event.weeks[0]} - {event.weeks[event.weeks.length - 1]}</div>
+        <div className="text-[10px] mt-1 opacity-95">Weeks {event.weeks[0]} - {event.weeks[event.weeks.length - 1]}</div>
         </div>
     );
 }

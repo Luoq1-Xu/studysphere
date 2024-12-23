@@ -3,7 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import { DetailedModuleInfo } from "@/lib/types";
 
 
-export function TestWorkloadCard({ modulesData }: {  modulesData: DetailedModuleInfo[] }) {
+export function WorkLoadDistribution({ modulesData }: {  modulesData: DetailedModuleInfo[] }) {
 
     // Compute total workload and categories
     let totalWorkload = 0;
@@ -26,9 +26,9 @@ export function TestWorkloadCard({ modulesData }: {  modulesData: DetailedModule
 
 
     return (
-        <Card className="w-full">
+        <Card className="w-full min-w-56">
         <CardHeader>
-            <CardTitle>Weekly Workload Summary</CardTitle>
+            <CardTitle>Weekly Workload Distribution</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
             <div className="flex justify-between items-center">

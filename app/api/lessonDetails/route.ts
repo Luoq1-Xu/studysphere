@@ -91,7 +91,7 @@ export async function GET(request: Request) {
             });
             return {
                 moduleCode,
-                title: modDetails?.title,
+                moduleTitle: modDetails?.title,
                 description: modDetails?.description,
                 lessons: lessonsAndWorkloads,
             };

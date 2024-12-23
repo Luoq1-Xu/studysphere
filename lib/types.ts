@@ -86,4 +86,25 @@ export type ModuleSchedule = {
     }[];
 }
 
+export type CustomEvent = {
+    eventName: string,
+    eventDescription: string,
+    eventLocation: string,
+    isRecurring: boolean,
+    startDateAndTime: Date,
+    endDateAndTime: Date,
+    dayOfWeek: string,
+    recurringStartTime: {
+        hour: string,
+        minute: string,
+    },
+    recurringEndTime: {
+        hour: string,
+        minute: string,
+    },
+    weeks: number[],
+    type: string,
+    color: string,
+};
+
 export type LessonRecord = Record<string, Record<string, string | undefined>>;

@@ -37,3 +37,5 @@ export function parseFunc(input: string): unknown {
 export function convertToHour(time: string): number {
   return parseInt(time.slice(0, 2));  
 }
+
+export const FIRSTMONDAY = new Date("2025-01-13");
