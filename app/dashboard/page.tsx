@@ -1,5 +1,4 @@
 "use client"
-import { CourseSelector } from "@/components/CourseSelector";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
 import { DetailedModuleInfo, CustomEvent, Module, ModuleSchedule } from "@/lib/types";
