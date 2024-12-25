@@ -13,6 +13,7 @@ import { WeeklyCalendar } from "@/components/WeeklyCalendar";
 import { convertLessonType, parseFunc } from "@/lib/utils";
 import { CreateEvent } from "@/components/CreateEvent";
 import { ClearCourses } from "@/components/ClearCourses";
+import { ModuleSelector } from "@/components/moduleSelector";
 
 export default function Page() {
 
@@ -232,9 +233,6 @@ export default function Page() {
             // Update the modScheduleData state
             setModScheduleData(lessonDetails);
 
-            console.log("lesson details", lessonDetails);
-            console.log("BRAHHHHHHHHHHHHH")
-
             // Clear the importUrl after processing
             setImportUrl(null);
             } catch (error) {
@@ -303,22 +301,22 @@ export default function Page() {
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-beige p-5">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-row justify-start gap-4">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-row justify-start gap-4 sm:grid-cols-1">
                 <CreateEvent onEventAdd={ handleEventAdd }/>
                 <ImportModules onUrlImport={ handleModuleImport }/>
             </div>
-            <div className="container mx-auto p-2 sm:p-6 lg:p-8">
+            <div className="container mx-auto px-4 py-3 sm:p-6 lg:p-8">
                 <h1 className="text-2xl sm:text-4xl font-bold">Dashboard</h1>
                 <p className="text-base sm:text-lg text-center sm:text-left my-5">Welcome back, {name}.</p>
                 <div className="flex flex-col sm:flex-row items-start justify-start gap-4">
                     <ClearCourses setSelectedCourses={ setSelectedCourses } />
-                    <CourseSelector onCourseSelect={ handleCourseSelect } />
+                    <ModuleSelector onCourseSelect={ handleCourseSelect } />
                 </div>
             </div>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-1 flex-col gap-4 md:gap-8">
                     <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
-                        <div className="col-span-2">
+                        <div className="col-span-full">
                             <Card>
                                 <CardHeader>
                                     <h2 className="font-semibold leading-none tracking-tight">Selected Mods</h2> 

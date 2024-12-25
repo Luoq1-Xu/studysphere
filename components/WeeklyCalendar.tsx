@@ -7,7 +7,6 @@ import { EventCard } from '@/components/EventCard'
 import { CustomEvent } from '@/lib/types'
 import { Switch } from './ui/switch'
 import { Label } from './ui/label'
-import { addWeeks, startOfWeek } from 'date-fns'
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI']
 const FULLDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -24,8 +23,6 @@ export function WeeklyCalendar({ events }: { events: CustomEvent[] }) {
   const hours = isNightMode ? NIGHTHOURS : DAYHOURS;
   const weekNumber = currentWeekIndex < 6 ? currentWeekIndex + 1 : currentWeekIndex;
 
-  const startingDate = new Date("2025-01-13")
-  const currentWeekStartDate = addWeeks(startOfWeek(startingDate, { weekStartsOn: 1 }), currentWeekIndex)
 
   const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -70,48 +67,17 @@ export function WeeklyCalendar({ events }: { events: CustomEvent[] }) {
     };
   });
 
-
-
-
-
-
-
-  {/* 
-    
-    let eventId = 0;
-    let modId = 0;
-    
-    const events: Event[] = moduleScheduleData.flatMap((module) => {
-    modId++;
-    return module.lessons.map((lesson) => {
-        return {
-            id: (eventId++).toString(),
-            courseCode: module.moduleCode,
-            type: lesson.lessonType,
-            location: lesson.venue,
-            weeks: lesson.weeks,
-            startTime: lesson.startTime,
-            endTime: lesson.endTime,
-            startHour: convertToHour(lesson.startTime),
-            endHour: convertToHour(lesson.endTime),
-            day: FULLDAYS.indexOf(lesson.day),
-            color: COLOURS[modId % COLOURS.length],
-        } as Event;
-    });
-  }); */}
-
   return (
     <div
       className={`
-        w-full h-full p-4 rounded-lg
+        w-full h-full p-4 rounded-lg overflow-hidden
         ${isNightMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-50 text-gray-950'}
       `}
     >
-      
-      
+    
       {/* Options */}
       <div className="flex items-center justify-between mb-3">
-        <div className="mb-6">
+        <div className="mb-6 w-24">
           <label htmlFor="week-selector" 
             className={`block text-sm font-medium 
              ${isNightMode ? 'text-gray-200' : 'text-gray-800'}
@@ -162,99 +128,115 @@ export function WeeklyCalendar({ events }: { events: CustomEvent[] }) {
         </Button>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="w-full border border-gray-800 rounded-lg">
-        {/* Time Headers */}
-        <div
-          className="grid border-b border-gray-800"
-          style={{ gridTemplateColumns: `60px repeat(12, minmax(0, 1fr))` }}
-        >
-          <div className="h-12" /> {/* Empty corner */}
-          {hours.map(hour => (
-            <div
-              key={hour}
-              className="h-12 border-l border-gray-800 flex items-center justify-center text-sm"
-            >
-              {hour.toString().padStart(2, '0')}00
-            </div>
-          ))}
-        </div>
+      {/* Scrollable Container */}
 
-        {/* Days and Events */}
-        <div className="relative">
-          {DAYS.map((day, dayIndex) => (
-            <div
-            key={day}
-            className="relative grid border-b border-gray-800 last:border-b-0"
+      <div className="overflow-x-auto">
+        {/* Calendar Grid */}
+        <div className="border border-gray-800 rounded-lg min-w-[560px]">
+          {/* Time Headers */}
+          <div
+            className="grid border-b border-gray-800"
             style={{ gridTemplateColumns: `60px repeat(12, minmax(0, 1fr))` }}
-            >
-                <div className="h-20 flex items-center justify-center text-sm font-medium">
-                    {day}
-                </div>
+          >
+            <div className="h-12" /> {/* Empty corner */}
+            {hours.map(hour => (
+              <div
+                key={hour}
+                className="h-12 border-l border-gray-800 flex items-center justify-center text-sm"
+              >
+                {hour.toString().padStart(2, '0')}00
+              </div>
+            ))}
+          </div>
 
-                {/* Vertical grid lines */}
-                {hours.map(hour => (
-                        <div
-                        key={hour}
-                        className="h-20 border-l border-gray-800"
-                        />
-                    ))}
-              
-                {/* Events for this day */}
-                {processedEvents
-                    .filter((event) => event.day === dayIndex && event.weeks.includes(weekNumber))
-                    .map((event) => {
-                      const startHour = event.startHour;
-                      const endHour = event.endHour;
-                      const startMinutes = event.startMinutes;
-                      const endMinutes = event.endMinutes;
+          {/* Days and Events */}
+          <div className="relative">
+            {DAYS.map((day, dayIndex) => (
+              <div
+              key={day}
+              className="relative grid border-b border-gray-800 last:border-b-0"
+              style={{ gridTemplateColumns: `60px repeat(12, minmax(0, 1fr))` }}
+              >
+                  <div className="h-20 flex items-center justify-center text-sm font-medium">
+                      {day}
+                  </div>
 
-                      // Calculate the total number of minutes in the schedule
-                      const scheduleStartTime = hours[0] * 60;
-                      // Account for overnight in night mode 
-                      const scheduleEndTime = isNightMode? 
-                        (hours[hours.length - 1] * 60 + 60) + 24 * 60 :
-                        hours[hours.length - 1] * 60 + 60;
-  
-                      let eventStartTime = startHour * 60 + startMinutes;
-                      let eventEndTime = endHour * 60 + endMinutes;
-  
-                      // Adjust for overnight events
-                      if (isNightMode && event.startHour < 20) {
-                        eventStartTime += 24 * 60; // Add 24 hours to the start time
-                      }
-  
-                      // Adjust for overnight events
-                      if (isNightMode && eventEndTime <= eventStartTime) {
-                        eventEndTime += 24 * 60; // Add 24 hours to the end time
-                      }
-
-                      // 2) Clip event times to the visible window
-                      const visibleStart = Math.max(scheduleStartTime, eventStartTime);
-                      const visibleEnd = Math.min(scheduleEndTime, eventEndTime);
-
-                      // 3) If no overlap, skip
-                      if (visibleEnd <= visibleStart) return null;
-  
-                      // 4) Calculate offset/width based on clipped range
-                      const totalScheduleMinutes = scheduleEndTime - scheduleStartTime;
-                      const eventStartPercent = ((visibleStart - scheduleStartTime) / totalScheduleMinutes) * 100;
-                      const eventDurationPercent = ((visibleEnd - visibleStart) / totalScheduleMinutes) * 100;
-                  
-                    return (
-                        <EventCard
-                        key={event.id}
-                        event={event}
-                        leftOffset={eventStartPercent}
-                        width={eventDurationPercent}
-                        />
-                    );
-                    })}
+                  {/* Vertical grid lines */}
+                  {hours.map(hour => (
+                          <div
+                          key={hour}
+                          className="h-20 border-l border-gray-800"
+                          />
+                      ))}
                 
-            </div>
-          ))}
+                  {/* Events for this day */}
+                  {processedEvents
+                      .filter((event) => event.day === dayIndex && event.weeks.includes(weekNumber))
+                      .map((event) => {
+                        const startHour = event.startHour;
+                        const endHour = event.endHour;
+                        const startMinutes = event.startMinutes;
+                        const endMinutes = event.endMinutes;
+
+                        console.log("EVENT: " + event.name + " START: " + startHour + " END: " + endHour);
+
+                        // Calculate the total number of minutes in the schedule
+                        const scheduleStartTime = hours[0] * 60;
+                        // Account for overnight in night mode 
+                        const scheduleEndTime = isNightMode? 
+                          (hours[hours.length - 1] * 60 + 60) + 24 * 60 :
+                          hours[hours.length - 1] * 60 + 60;
+    
+                        let eventStartTime = startHour * 60 + startMinutes;
+                        let eventEndTime = endHour * 60 + endMinutes;
+
+                        // Clip event times to the visible window (for those events that span day and night)
+                        eventStartTime = Math.max(scheduleStartTime, eventStartTime);
+                        eventEndTime = Math.min(scheduleEndTime, eventEndTime);
+
+                        // Adjust for overnight events
+                        if (isNightMode && eventEndTime <= eventStartTime) {
+                          eventEndTime += 24 * 60; // Add 24 hours to the end time
+                        }
+    
+                        // Adjust for overnight events
+                        if (isNightMode && eventStartTime < 20) {
+                          eventStartTime += 24 * 60; // Add 24 hours to the start time
+                        }
+
+                        // 2) Clip event times to the visible window
+                        const visibleStart = Math.max(scheduleStartTime, eventStartTime);
+                        const visibleEnd = Math.min(scheduleEndTime, eventEndTime);
+
+                        // 3) If no overlap, skip
+                        if (visibleEnd <= visibleStart) return null;
+    
+                        // 4) Calculate offset/width based on clipped range
+                        const totalScheduleMinutes = scheduleEndTime - scheduleStartTime;
+                        const eventStartPercent = ((visibleStart - scheduleStartTime) / totalScheduleMinutes) * 100;
+                        const eventDurationPercent = ((visibleEnd - visibleStart) / totalScheduleMinutes) * 100;
+
+                        
+                    
+                      return (
+                          <EventCard
+                          key={event.id}
+                          event={event}
+                          leftOffset={eventStartPercent}
+                          width={eventDurationPercent}
+                          />
+                      );
+                      })}
+                  
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+
+
+
     </div>
   )
 }
