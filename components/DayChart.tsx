@@ -15,9 +15,9 @@ import {
   ChartConfig,
   ChartContainer,
 } from "@/components/ui/chart"
-import { ModuleSchedule } from "@/lib/types"
+import { ModuleInfo } from "@/lib/types"
 
-export function DayChart({ modData }: { modData: ModuleSchedule[] }) {
+export function DayChart({ modData }: { modData: ModuleInfo[] }) {
 
   interface WorkloadData {
     date: string;
@@ -72,10 +72,10 @@ export function DayChart({ modData }: { modData: ModuleSchedule[] }) {
       item.modules[modCode] = 0;
     }
     chartConfig[modCode] = {
-      label: mod.moduleCode + " " + mod.moduleTitle,
+      label: mod.moduleCode + " " + mod.title,
       color: getColor(data.length),
     }
-    for (const lesson of mod.lessons) {
+    for (const lesson of mod.selectedLessons) {
       const day = lesson.day
       const startTime = lesson.startTime
       const endTime = lesson.endTime

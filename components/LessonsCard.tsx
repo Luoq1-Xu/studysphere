@@ -1,9 +1,9 @@
-import { ModuleSchedule } from "@/lib/types";
+import { ModuleInfo } from "@/lib/types";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 
-export function LessonsCard({ data }: { data: ModuleSchedule[] }) {
+export function LessonsCard({ data }: { data: ModuleInfo[] }) {
 
     return (
         <Card className="w-full">
@@ -18,17 +18,17 @@ export function LessonsCard({ data }: { data: ModuleSchedule[] }) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {data.map((modScheduleData) => (
-                        <TableRow key={modScheduleData.moduleCode}>
+                    {data.map((modData) => (
+                        <TableRow key={modData.moduleCode}>
                             <TableCell>
-                                {modScheduleData.moduleCode}
+                                {modData.moduleCode}
                                 <br/>
-                                {modScheduleData.moduleTitle}
+                                {modData.title}
                             </TableCell>
                             <TableCell>
-                            {modScheduleData.lessons.map((lesson) => (
-                                <div key={modScheduleData.moduleCode + lesson.lessonType + lesson.day + lesson.startTime}>
-                                {lesson.lessonType}: {lesson.lessonNumber}
+                            {modData.selectedLessons.map((lesson) => (
+                                <div key={modData.moduleCode + lesson.lessonType + lesson.day + lesson.startTime}>
+                                    {lesson.lessonType}: {lesson.classNo}
                                 </div>
                             ))}
                             </TableCell>

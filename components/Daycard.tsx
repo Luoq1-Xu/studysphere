@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/card"
 import { DayChart } from "./DayChart"
 import { useState, useEffect } from "react";
-import { ModuleSchedule } from "@/lib/types";
+import { ModuleInfo } from "@/lib/types";
   
 
-export const Daycard = ({ modData }: { modData: ModuleSchedule[] }) => {
+export const Daycard = ({ modData }: { modData: ModuleInfo[] }) => {
 
     const [today, setToday] = useState('');
 

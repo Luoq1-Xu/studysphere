@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress";
-import { DetailedModuleInfo } from "@/lib/types";
+import { ModuleInfo } from "@/lib/types";
 
 
-export function WorkLoadDistribution({ modulesData }: {  modulesData: DetailedModuleInfo[] }) {
+export function WorkLoadDistribution({ modulesData }: {  modulesData: ModuleInfo[] }) {
 
     // Compute total workload and categories
     let totalWorkload = 0;
@@ -15,7 +15,7 @@ export function WorkLoadDistribution({ modulesData }: {  modulesData: DetailedMo
         { name: "Preparation", hours: 0 },
     ];
 
-    modulesData.forEach((moduleData: DetailedModuleInfo) => {
+    modulesData.forEach((moduleData: ModuleInfo) => {
             const workloads = JSON.parse(moduleData.workload);
             workloads.forEach((workload: number, index: number) => {
                 categories[index].hours += workload;

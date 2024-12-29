@@ -1,39 +1,35 @@
 "use client"
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
-import { DetailedModuleInfo, CustomEvent, Module, ModuleSchedule } from "@/lib/types";
-import { useQuery } from "react-query";
+import { CustomEvent, Module, ModuleInfo, RawModuleInfo, Lesson } from "@/lib/types";
 import { WorkLoadDistribution } from "@/components/WorkloadDistribution";
-import { ModuleCard } from "@/components/ModuleCard";
 import { ImportModules } from "@/components/ImportModules";
 import { LessonsCard } from "@/components/LessonsCard";
 import { Daycard } from "@/components/Daycard";
 import { WeeklyCalendar } from "@/components/WeeklyCalendar";
-import { convertLessonType, parseFunc } from "@/lib/utils";
 import { CreateEvent } from "@/components/CreateEvent";
 import { ClearCourses } from "@/components/ClearCourses";
-import { ModuleSelector } from "@/components/moduleSelector";
+import { ModuleSelector } from "@/components/ModuleSelector";
+import { ModuleSelectCard } from "@/components/ModuleSelectCard";
 
 export default function Page() {
 
     // selectedCourses -> Array of selected courses
-    // modulesData -> Array of module details (detailed module data)
+    // modInfoList -> Array of module details (detailed module data) with each
+    //                module containing an array of selected lessons
     // importUrl -> URL to import modules
-    // lessonsData -> 1 object with key-value pairs where key = moduleCode and value = lesson details
-    // modScheduleData -> Array of module schedules
 
     const name = "StudySphere";
+    const CHOSENSEMESTER = 0; // 0-indexed - Sem 1 is 0 and Sem 2 is 1
     const [selectedCourses, setSelectedCourses] = useState<Module[]>([]);
-    const [modulesData, setModulesData] = useState<DetailedModuleInfo[]>([]);
     const [importUrl, setImportUrl] = useState<string | null>(null);
-    const [lessonsData, setLessonsData] = useState<Record<string, Record<string, string>>>({});
-    const [modScheduleData, setModScheduleData] = useState<ModuleSchedule[]>([]);
     const [events, setEvents] = useState<CustomEvent[]>([]);
-    const prevModulesDataRef = useRef<DetailedModuleInfo[]>([]);
+    const [modInfoList, setModInfoList] = useState<ModuleInfo[]>([]);
     const prevSelectedCoursesRef = useRef<Module[]>([]);
 
     // Fetch module info from the API
-    const fetchModuleInfo = async (moduleCode: string) => {
+    const fetchModuleInfo = async (moduleCode: string): Promise<RawModuleInfo> => {
         const response = await fetch(`/api/moduleInfo?moduleCode=${moduleCode}`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -41,69 +37,48 @@ export default function Page() {
         return response.json();
     };
 
-    // Update lessonsData (lesson details) based on the added courses
-    const updateLessonsData = async (addedCourses: Module[]) => {
+    // Update ModuleInfoList
+    const updateModuleInfoList = async (addedCourses: Module[]) => {
         try {
-            const newModulesData = await Promise.all(
+            const newModulesData: RawModuleInfo[] = await Promise.all(
                 addedCourses.map((course) => fetchModuleInfo(course.code))
             );
-            const newLessonData = { ...lessonsData };
-            const uniqueLessons = [] as { lessonType: string, lessonNumber: string }[];
-
             const flattenedModulesData = newModulesData.flat();
-
-            flattenedModulesData.forEach((module: DetailedModuleInfo) => {
-                const moduleCode = module.moduleCode;
-                const semesterData = parseFunc(module.semesterData as unknown as string) as DetailedModuleInfo['semesterData'];
-                const lessons: Record<string, string> = {};
-
-                const chosenSemester = semesterData[0];
-                chosenSemester.timetable.forEach((lesson) => {
-                    const lessonType = lesson.lessonType;
-                    const lessonNumber = lesson.classNo;
-                    if (!lessons[lessonType]) {
-                        uniqueLessons.push({ lessonType, lessonNumber });
-                        lessons[lessonType] = lessonNumber;
+            const processedData = flattenedModulesData.map((module: RawModuleInfo) => {
+                const semData = module.semesterData;
+                const chosenSemester = semData[CHOSENSEMESTER];
+                // Default select the first classNo of each lesson type
+                const selectedLessonsNums = chosenSemester.timetable.map((lessonData: { lessonType: string, lessons: Lesson[] }) => {
+                    return {
+                        lessonType: lessonData.lessonType,
+                        classNo: lessonData.lessons[0].classNo
                     }
                 });
-
-                newLessonData[moduleCode] = lessons;
-            });
-
-            const updatedLessonDetails = flattenedModulesData.map((module: DetailedModuleInfo) => {
-                const semesterData = parseFunc(module.semesterData as unknown as string) as DetailedModuleInfo['semesterData'];
-                const chosenSemester = semesterData[0];
-                const lessonWorkload = uniqueLessons.flatMap((lessonType: { lessonType: string, lessonNumber: string }) => {
-                    const lessonData = chosenSemester.timetable.filter((lessonData) => lessonData.lessonType === lessonType.lessonType && lessonData.classNo === lessonType.lessonNumber);
-                    return lessonData.map((lesson) => ({
-                        lessonType: convertLessonType(lesson.lessonType),
-                        lessonNumber: lessonType.lessonNumber,
-                        startTime: lesson.startTime,
-                        endTime: lesson.endTime,
-                        venue: lesson.venue,
-                        day: lesson.day,
-                        size: lesson.size,
-                        weeks: lesson.weeks,
-                    })) || [];
+                // Get the selected lessons based on the selectedLessonsNums
+                const selectedLessons = selectedLessonsNums.flatMap((lesson) => {
+                    return (
+                        chosenSemester.timetable.find((lessonData: { lessonType: string, lessons: Lesson[] }) => lessonData.lessonType === lesson.lessonType)!
+                        .lessons
+                        .filter((lessonData: Lesson) => lessonData.classNo === lesson.classNo)
+                    );
                 });
+
                 return {
-                    moduleCode: module.moduleCode,
-                    moduleTitle: module.title,
-                    description: module.description,
-                    lessons: lessonWorkload,
+                    ...module,
+                    selectedLessons: selectedLessons,
                 }
-            });
+            }) as ModuleInfo[];
 
-            console.log("NEW LESSON DATA", updatedLessonDetails);
+            console.log("PROCESSED DATA");
+            console.log(processedData);
 
-            setModScheduleData((prevData) => [...prevData, ...updatedLessonDetails]);
+            setModInfoList((prevData) => [...prevData, ...processedData]);
 
-            setLessonsData(newLessonData);
+            console.log("CHANGED")
         } catch (error) {
             console.error("Error fetching module info somewhere:", error);
         }
     };
-
 
     // Handle course selection
     const handleCourseSelect = (course: Module) => {
@@ -124,49 +99,16 @@ export default function Page() {
         console.log("Events:", events);
     };
 
-    // Fetch module info from API based on selected courses
-    const selectedModuleCodes = selectedCourses.map((course) => course.code).join('&moduleCode=');   
-    const moduleInfoResponse = useQuery(
-        ["moduleInfo", selectedModuleCodes],
-        async () => {
-            if (!selectedModuleCodes) {
-                return [];
-            }
-            const response = await fetch(`/api/moduleInfo?moduleCode=${selectedModuleCodes}`);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        },
-    )
-
-    const isLoading = moduleInfoResponse.isLoading;
-    const isError = moduleInfoResponse.isError;
-    const newModulesData = moduleInfoResponse.data as DetailedModuleInfo[];
-
-    // Update the modulesData state when newModulesData changes (if data has changed)
-    useEffect(() => {
-        if (!isLoading && !isError) {
-          const hasDataChanged = JSON.stringify(newModulesData) !== JSON.stringify(prevModulesDataRef.current);
-          if (hasDataChanged) {
-            setModulesData(newModulesData);
-            prevModulesDataRef.current = newModulesData;
-          }
-        }
-      }, [isLoading, isError, newModulesData]);
-
     // Handle modules import from NUSMods
     const handleModuleImport = (url: string) => {
         console.log(url);
         setImportUrl(url);
     };
 
-    // Use useEffect to update lessonsData and modScheduleData when selectedCourses changes
+    // Use useEffect to update modInfoList when selectedCourses changes
     useEffect(() => {
         if (selectedCourses.length === 0) {
-            setModulesData([]);
-            setLessonsData({});
-            setModScheduleData([]);
+            setModInfoList([]);
         }
 
         // Check for added/removed courses
@@ -176,12 +118,12 @@ export default function Page() {
 
         // Fetch info for new courses
         if (addedCourses.length > 0) {
-            updateLessonsData(addedCourses);
+            updateModuleInfoList(addedCourses);
         }
 
         // Remove info for removed courses
         if (removedCourses.length > 0) {
-            setModScheduleData((prevData) => prevData.filter((data) => !removedCourses.some((course) => course.code === data.moduleCode)));
+            setModInfoList((prevData) => prevData.filter((data) => !removedCourses.some((course) => course.code === data.moduleCode)));
         }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -191,6 +133,25 @@ export default function Page() {
     useEffect(() => {
         if (importUrl) {
         (async () => {
+
+            try {
+                // Fetch ModuleInfo from urlToModInfo API
+                const response = await fetch(`/api/urlToModInfo?url=${importUrl}`);
+                if (!response.ok) {
+                    throw new Error("Parsing URL Failed");
+                }
+                const parsedModules = await response.json();
+
+                // Override the existing modInfoList
+                setModInfoList(parsedModules);
+
+                // Clear the importUrl after processing
+                setImportUrl(null);
+            } catch (error) {
+                console.error("Error fetching modules using url:", error);
+            }
+
+            {/* }
             try {
                 // Fetch the modules from the parseModules API
                 const response = await fetch(`/api/parseModules?url=${importUrl}`);
@@ -208,8 +169,6 @@ export default function Page() {
             const parsedModules = await response.json(); // Parsed modules object
 
             const mods = await modsResponse.json(); // List of all mods
-
-            const lessonDetails = await lessonDetailsResponse.json(); // Lesson details for the selected modules
 
             // Extract module codes from the parsedModules
             const moduleCodes = Object.keys(parsedModules).filter((code) => code !== "hidden");
@@ -229,42 +188,29 @@ export default function Page() {
             // Update the lessonsData state
             setLessonsData(parsedModules);
 
-            // Update the modScheduleData state
-            setModScheduleData(lessonDetails);
-
             // Clear the importUrl after processing
             setImportUrl(null);
             } catch (error) {
                 console.error("Error fetching parsed modules:", error);
             }
+
+            */}
         })();
         }
     }, [importUrl]);
 
-    // Fetch module info from API based on selected courses
-    useEffect(() => {
-        if (!isLoading && !isError) {
-          const hasDataChanged = JSON.stringify(newModulesData) !== JSON.stringify(prevModulesDataRef.current);
-          if (hasDataChanged) {
-            setModulesData(newModulesData);
-            prevModulesDataRef.current = newModulesData;
-          }
-        }
-      }, [isLoading, isError, newModulesData]);
-
-
-    // Update Events when modScheduleData changes
+    // Update Events when modInfoList changes
     useEffect(() => {
         const COLOURS = ['coral', 'yellow', 'pink', 'green', 'blue', 'purple', 'teal', 'gray', 'rose']
 
         let modIndex = 0;
         // flatten the modScheduleData to get the lesson details
-        const newEvents = modScheduleData.flatMap((module) => {
+        const newEvents = modInfoList.flatMap((module) => {
             modIndex++;
-            return module.lessons.map((lesson) => {
+            return module.selectedLessons.map((lesson) => {
                 return {
                     eventName: `${module.moduleCode}`,
-                    eventDescription: `${lesson.lessonType} ${lesson.lessonNumber}`,
+                    eventDescription: `${lesson.lessonType} ${lesson.classNo}`,
                     eventLocation: lesson.venue,
                     isRecurring: true,
                     startDateAndTime: new Date(),
@@ -296,7 +242,11 @@ export default function Page() {
           });
 
 
-    }, [modScheduleData]);
+    }, [modInfoList]);
+
+    const handleModCardClick = () => {
+        console.log("LMFAO");
+    }
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-beige p-5">
@@ -313,6 +263,11 @@ export default function Page() {
                 </div>
             </div>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex flex-1 flex-col gap-4 md:gap-8 py-5">
+                    <div className="grid gap-4 md:grid-cols-1">
+                        <WeeklyCalendar events={events}/>
+                    </div>
+                </div>
                 <div className="flex flex-1 flex-col gap-4 md:gap-8">
                     <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
                         <div className="col-span-full">
@@ -322,25 +277,24 @@ export default function Page() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-                                        {modulesData?.map((module, index) => (
-                                            <ModuleCard key={module.moduleCode} moduleDetails={module} index={index} />
+                                        {modInfoList?.map((module, index) => (
+                                            <ModuleSelectCard 
+                                                key={module.moduleCode}  
+                                                modInfo={module}
+                                                index={index}
+                                                onClick={handleModCardClick} />
                                         ))}
                                     </div>
                                 </CardContent>
                             </Card>
                         </div>
-                        <WorkLoadDistribution modulesData={modulesData} />
-                        <LessonsCard data={modScheduleData} />   
+                        <WorkLoadDistribution modulesData={modInfoList} />
+                        <LessonsCard data={modInfoList} />   
                     </div>
                 </div>
                 <div className="flex flex-1 flex-col gap-4 md:gap-8 py-5">
                     <div className="grid gap-4 md:grid-cols-1">
-                        <Daycard modData={modScheduleData} />
-                    </div>
-                </div>
-                <div className="flex flex-1 flex-col gap-4 md:gap-8 py-5">
-                    <div className="grid gap-4 md:grid-cols-1">
-                        <WeeklyCalendar events={events}/>
+                        <Daycard modData={modInfoList} />
                     </div>
                 </div>
             </div>

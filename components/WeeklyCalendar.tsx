@@ -178,8 +178,6 @@ export function WeeklyCalendar({ events }: { events: CustomEvent[] }) {
                         const startMinutes = event.startMinutes;
                         const endMinutes = event.endMinutes;
 
-                        console.log("EVENT: " + event.name + " START: " + startHour + " END: " + endHour);
-
                         // Calculate the total number of minutes in the schedule
                         const scheduleStartTime = hours[0] * 60;
                         // Account for overnight in night mode 
@@ -189,6 +187,9 @@ export function WeeklyCalendar({ events }: { events: CustomEvent[] }) {
     
                         let eventStartTime = startHour * 60 + startMinutes;
                         let eventEndTime = endHour * 60 + endMinutes;
+
+                        // 1) Skip events that are outside the visible window
+                        if (eventStartTime < scheduleStartTime && eventEndTime < scheduleStartTime) return null;
 
                         // Clip event times to the visible window (for those events that span day and night)
                         eventStartTime = Math.max(scheduleStartTime, eventStartTime);
@@ -220,10 +221,10 @@ export function WeeklyCalendar({ events }: { events: CustomEvent[] }) {
                     
                       return (
                           <EventCard
-                          key={event.id}
-                          event={event}
-                          leftOffset={eventStartPercent}
-                          width={eventDurationPercent}
+                            key={event.id}
+                            event={event}
+                            leftOffset={eventStartPercent}
+                            width={eventDurationPercent}
                           />
                       );
                       })}

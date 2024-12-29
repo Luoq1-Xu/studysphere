@@ -23,6 +23,7 @@ export function reverseLessonType(lessonType: string): string {
   return Object.keys(lessonTypeMapping).find(key => lessonTypeMapping[key] === lessonType) || lessonType; // Return the original string if no mapping is found
 };
 
+// To parse semesterdata into and object
 export function parseFunc(input: string): unknown {
   try {
     const sanitised = input.replace(/'/g, '"');

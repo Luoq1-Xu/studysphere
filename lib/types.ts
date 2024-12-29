@@ -64,6 +64,31 @@ export type DetailedModuleInfo = {
     aliases: string;
 }
 
+export type rawDetailedModuleInfo = {
+    acadYear: string;
+    description: string;
+    title: string;
+    additionalInformation: string;
+    department: string;
+    faculty: string;
+    workload: string;
+    gradingBasisDescription: string;
+    moduleCredit: number;
+    moduleCode: string;
+    semesterData: string;
+    preclusion: string;
+    preclusionRule: string;
+    prerequisite: string;
+    prerequisiteRule: string;
+    attributes: string;
+    fufillRequirements: string;
+    prereqTree: string;
+    corequisite: string;
+    corequisiteRule: string;
+    prerequisiteAdvisory: string;
+    aliases: string;
+}
+
 export type Module = {
     code: string;
     title: string;
@@ -85,6 +110,82 @@ export type ModuleSchedule = {
         weeks: number[];
     }[];
 }
+
+export type RawModuleInfo = {
+    acadYear: string;
+    description: string;
+    title: string;
+    additionalInformation: string;
+    department: string;
+    faculty: string;
+    workload: string;
+    gradingBasisDescription: string;
+    moduleCredit: number;
+    moduleCode: string;
+    preclusion: string;
+    preclusionRule: string;
+    prerequisite: string;
+    prerequisiteRule: string;
+    attributes: string;
+    fufillRequirements: string;
+    prereqTree: string;
+    corequisite: string;
+    corequisiteRule: string;
+    prerequisiteAdvisory: string;
+    aliases: string;
+    semesterData: {
+        semester: number;
+        timetable: {
+            lessonType: string;
+            lessons: Lesson[];
+        }[];
+        covidZones: string[];
+    }[];
+}
+
+export type ModuleInfo = {
+    acadYear: string;
+    description: string;
+    title: string;
+    additionalInformation: string;
+    department: string;
+    faculty: string;
+    workload: string;
+    gradingBasisDescription: string;
+    moduleCredit: number;
+    moduleCode: string;
+    preclusion: string;
+    preclusionRule: string;
+    prerequisite: string;
+    prerequisiteRule: string;
+    attributes: string;
+    fufillRequirements: string;
+    prereqTree: string;
+    corequisite: string;
+    corequisiteRule: string;
+    prerequisiteAdvisory: string;
+    aliases: string;
+    semesterData: {
+        semester: number;
+        timetable: {
+            lessonType: string;
+            lessons: Lesson[];
+        }[];
+        covidZones: string[];
+    }[];
+    selectedLessons: {
+        classNo: string;
+        startTime: string;
+        endTime: string;
+        weeks: number[];
+        venue: string;
+        day: string;
+        lessonType: string;
+        size: number;
+        covidZones: string;
+    }[];
+}
+
 
 export type CustomEvent = {
     eventName: string,
@@ -108,3 +209,15 @@ export type CustomEvent = {
 };
 
 export type LessonRecord = Record<string, Record<string, string | undefined>>;
+
+export type Lesson = {
+        classNo: string;
+        startTime: string;
+        endTime: string;
+        weeks: number[];
+        venue: string;
+        day: string;
+        lessonType: string;
+        size: number;
+        covidZones: string;
+    }
