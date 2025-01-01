@@ -17,7 +17,7 @@ export function ClearCourses({ setSelectedCourses }: { setSelectedCourses: (cour
                     This action cannot be undone.
                 </AlertDialogDescription>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="mr-5">Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={() => setSelectedCourses([])}>
                         Clear Courses
                     </AlertDialogAction>

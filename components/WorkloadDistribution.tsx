@@ -26,25 +26,29 @@ export function WorkLoadDistribution({ modulesData }: {  modulesData: ModuleInfo
 
 
     return (
-        <Card className="w-full min-w-56">
-        <CardHeader>
+        <Card className="w-full min-w-56 h-full flex flex-col">
+            <CardHeader>
             <CardTitle>Weekly Workload Distribution</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
+            </CardHeader>
+            <CardContent className="flex flex-col justify-between h-full">
             <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total Modules:</span>
-            <span className="text-2xl font-bold">{modulesData.length}</span>
+                <span className="text-sm font-medium">Total Modules:</span>
+                <span className="text-2xl font-bold">{modulesData.length}</span>
             </div>
             <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total Workload:</span>
-            <span className="text-2xl font-bold">{totalWorkload} hours</span>
+                <span className="text-sm font-medium">Total Workload:</span>
+                <span className="text-2xl font-bold">{totalWorkload} hours</span>
             </div>
-            <div className="space-y-2">
-            {categories.map((category) => (
-                <CategoryWorkload key={category.name} category={category} totalWorkload={totalWorkload} />
-            ))}
+            <div className="flex flex-col justify-evenly h-full">
+                {categories.map((category) => (
+                <CategoryWorkload 
+                    key={category.name} 
+                    category={category} 
+                    totalWorkload={totalWorkload} 
+                />
+                ))}
             </div>
-        </CardContent>
+            </CardContent>
         </Card>
     )
 }
@@ -61,7 +65,7 @@ function CategoryWorkload({ category, totalWorkload }: {
         <span>{category.name}</span>
         <span>{category.hours} hours ({percentage}%)</span>
       </div>
-      <Progress value={percentage} className="h-2" />
+      <Progress value={percentage} className="h-5" />
     </div>
   )
 }

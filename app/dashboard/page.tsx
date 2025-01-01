@@ -1,17 +1,17 @@
 "use client"
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
-import { CustomEvent, Module, ModuleInfo, RawModuleInfo, Lesson } from "@/lib/types";
+import {EventEntry, Module, ModuleInfo, RawModuleInfo, Lesson } from "@/lib/types";
 import { WorkLoadDistribution } from "@/components/WorkloadDistribution";
 import { ImportModules } from "@/components/ImportModules";
 import { LessonsCard } from "@/components/LessonsCard";
-import { Daycard } from "@/components/Daycard";
 import { WeeklyCalendar } from "@/components/WeeklyCalendar";
 import { CreateEvent } from "@/components/CreateEvent";
 import { ClearCourses } from "@/components/ClearCourses";
 import { ModuleSelector } from "@/components/ModuleSelector";
-import { ModuleSelectCard } from "@/components/ModuleSelectCard";
+import { DayChart } from "@/components/DayChart";
+import { UpcomingEvents } from "@/components/UpcomingEvents";
+import { SelectedModulesCard } from "@/components/SelectedModulesCard";
 
 export default function Page() {
 
@@ -24,7 +24,7 @@ export default function Page() {
     const CHOSENSEMESTER = 0; // 0-indexed - Sem 1 is 0 and Sem 2 is 1
     const [selectedCourses, setSelectedCourses] = useState<Module[]>([]);
     const [importUrl, setImportUrl] = useState<string | null>(null);
-    const [events, setEvents] = useState<CustomEvent[]>([]);
+    const [events, setEvents] = useState<EventEntry[]>([]);
     const [modInfoList, setModInfoList] = useState<ModuleInfo[]>([]);
     const prevSelectedCoursesRef = useRef<Module[]>([]);
 
@@ -93,11 +93,25 @@ export default function Page() {
     };
 
     // Handle event creation
-    const handleEventAdd = (event: CustomEvent) => {
+    const handleEventAdd = (event: EventEntry) => {
         setEvents((prevEvents) => [...prevEvents, event]);
         console.log("Event added:", event);
         console.log("Events:", events);
     };
+
+    const handleEventOperation = (
+        operation: string,
+        event: EventEntry,
+        modifiedEvent?: EventEntry
+    ) => {
+        if (operation === "add") {
+            setEvents((prevEvents) => [...prevEvents, event]);
+        } else if (operation === "update" && modifiedEvent) {
+            setEvents((prevEvents) => prevEvents.map((e) => e === event ? modifiedEvent : e));
+        } else if (operation === "remove") {
+            setEvents((prevEvents) => prevEvents.filter((e) => e !== event));
+        }
+    }
 
     // Handle modules import from NUSMods
     const handleModuleImport = (url: string) => {
@@ -227,12 +241,10 @@ export default function Page() {
                     weeks: lesson.weeks,
                     type: 'lesson',
                     color: COLOURS[modIndex % COLOURS.length],
-                } as CustomEvent;
+                } as EventEntry;
             });
         });
 
-        console.log(newEvents);
-        
         setEvents((prevEvents) => {
             // 1) Filter out only user-created events (assuming user-created events have a type property set to 'user')
             const userEvents = prevEvents.filter((e) => e.type === 'user');
@@ -244,26 +256,25 @@ export default function Page() {
 
     }, [modInfoList]);
 
-    const handleModCardClick = () => {
-        console.log("LMFAO");
+    const handleModCardClick = (module: ModuleInfo, operation: string) => {
+        if (operation === "remove") {
+            setModInfoList((prevData) => prevData.filter((data) => data.moduleCode !== module.moduleCode));
+            setSelectedCourses((prevCourses) => prevCourses.filter((course) => course.code !== module.moduleCode));
+        }
     }
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-beige p-5">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-row justify-start gap-4 sm:grid-cols-1">
-                <CreateEvent onEventAdd={ handleEventAdd }/>
-                <ImportModules onUrlImport={ handleModuleImport }/>
+                <CreateEvent onEventAdd={handleEventAdd}/>
+                <ImportModules onUrlImport={handleModuleImport}/>
             </div>
-            <div className="container mx-auto px-4 py-3 sm:p-6 lg:p-8">
+            <div className="container mx-auto sm:px-6 lg:px-8 sm:p-4 lg:p-6">
                 <h1 className="text-2xl sm:text-4xl font-bold">Dashboard</h1>
-                <p className="text-base sm:text-lg text-center sm:text-left my-5">Welcome back, {name}.</p>
-                <div className="flex flex-col sm:flex-row items-start justify-start gap-4">
-                    <ClearCourses setSelectedCourses={ setSelectedCourses } />
-                    <ModuleSelector onCourseSelect={ handleCourseSelect } />
-                </div>
+                <p className="text-base sm:text-lg text-center sm:text-left">Welcome back, {name}.</p>
             </div>
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-1 flex-col gap-4 md:gap-8 py-5">
+            <div className="container mx-auto sm:px-6 lg:px-8">
+                <div className="flex flex-1 flex-col gap-4 md:gap-8 py-3">
                     <div className="grid gap-4 md:grid-cols-1">
                         <WeeklyCalendar events={events}/>
                     </div>
@@ -271,34 +282,21 @@ export default function Page() {
                 <div className="flex flex-1 flex-col gap-4 md:gap-8">
                     <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
                         <div className="col-span-full">
-                            <Card>
-                                <CardHeader>
-                                    <h2 className="font-semibold leading-none tracking-tight">Selected Mods</h2> 
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-                                        {modInfoList?.map((module, index) => (
-                                            <ModuleSelectCard 
-                                                key={module.moduleCode}  
-                                                modInfo={module}
-                                                index={index}
-                                                onClick={handleModCardClick} />
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <div className="flex flex-col sm:flex-row items-start justify-start gap-4">
+                                <ClearCourses setSelectedCourses={setSelectedCourses} />
+                                <ModuleSelector onCourseSelect={handleCourseSelect} />
+                            </div>
                         </div>
+                        <div className="col-span-full">
+                            <SelectedModulesCard modInfoList={ modInfoList } handleModCardClick={handleModCardClick} />
+                        </div>
+                        <UpcomingEvents events={events} handleEventOperation={handleEventOperation}/>
+                        <LessonsCard data={modInfoList} />
                         <WorkLoadDistribution modulesData={modInfoList} />
-                        <LessonsCard data={modInfoList} />   
-                    </div>
-                </div>
-                <div className="flex flex-1 flex-col gap-4 md:gap-8 py-5">
-                    <div className="grid gap-4 md:grid-cols-1">
-                        <Daycard modData={modInfoList} />
+                        <DayChart modData={modInfoList} />   
                     </div>
                 </div>
             </div>
         </div>
-
   );
 }

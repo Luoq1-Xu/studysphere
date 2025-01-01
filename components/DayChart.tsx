@@ -98,7 +98,7 @@ export function DayChart({ modData }: { modData: ModuleInfo[] }) {
   );
 
   return (
-    <Card className="min-w-36 w-3/4">
+    <Card className="min-w-36">
       <CardHeader>
         <CardTitle>Weekly Lesson Time</CardTitle>
         <CardDescription>January - June 2024</CardDescription>

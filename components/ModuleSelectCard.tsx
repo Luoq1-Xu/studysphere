@@ -7,8 +7,6 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 
 
-
-
 export function ModuleSelectCard({ 
     modInfo,
     index,
@@ -17,7 +15,7 @@ export function ModuleSelectCard({
 {
     modInfo: ModuleInfo,
     index: number,
-    onClick: () => void 
+    onClick: (modInfo: ModuleInfo, operation: string) => void 
 }) {
 
     const colors = [
@@ -34,8 +32,8 @@ export function ModuleSelectCard({
 
     const color = colors[index % colors.length]
 
-    const handleClick = () => {
-        onClick()
+    const handleClick = (operation: string) => {
+        onClick(modInfo, operation);
     }
     
     return (
@@ -82,7 +80,7 @@ export function ModuleSelectCard({
                         </Button>
                     ))}
                 </div>
-                <Button onClick={handleClick}>Add to Plan</Button>
+                <Button variant="destructive" onClick={() => handleClick("remove")}>Remove Mod</Button>
             </DialogContent>
         </Dialog>
     )

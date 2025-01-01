@@ -187,7 +187,7 @@ export type ModuleInfo = {
 }
 
 
-export type CustomEvent = {
+export type EventEntry = {
     eventName: string,
     eventDescription: string,
     eventLocation: string,
@@ -221,3 +221,24 @@ export type Lesson = {
         size: number;
         covidZones: string;
     }
+
+export type FormValues = {
+    eventName: string;
+    eventDescription: string;
+    eventLocation: string;
+    isRecurring: boolean;
+    startDateAndTime: Date;
+    endDateAndTime: Date;
+    dayOfWeek: string;
+    recurringStartTime: {
+        hour: string;
+        minute: string;
+    };
+    recurringEndTime: {
+        hour: string;
+        minute: string;
+    };
+    weeks: number[];
+    type: string;
+    color: string;
+    };
