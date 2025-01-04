@@ -89,7 +89,7 @@ export function WeeklyCalendar({ events }: { events: EventEntry[] }) {
     
       {/* Options */}
       <div className="flex items-center justify-between">
-        <div className="mb-6 w-24">
+        <div className="mb-6 w-36">
           <label htmlFor="week-selector" 
             className={`block text-sm font-medium 
              ${isNightMode ? 'text-gray-200' : 'text-gray-800'}
@@ -163,7 +163,7 @@ export function WeeklyCalendar({ events }: { events: EventEntry[] }) {
           {/* Days and Events */}
           <div className="relative">
             {DAYS.map((day, dayIndex) => {
-              const dateForThisDay = getDateForDay(weekNumber - 1, dayIndex);
+              const dateForThisDay = getDateForDay(currentWeekIndex, dayIndex);
               return (
                 <div
                 key={day}

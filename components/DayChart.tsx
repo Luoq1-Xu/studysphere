@@ -1,5 +1,6 @@
 "use client"
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { TrendingUp } from "lucide-react"
 import { Area, AreaChart, Legend, Tooltip, XAxis, YAxis } from "recharts"
 
@@ -101,7 +102,7 @@ export function DayChart({ modData }: { modData: ModuleInfo[] }) {
     <Card className="min-w-36">
       <CardHeader>
         <CardTitle>Weekly Lesson Time</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription></CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -129,12 +130,14 @@ export function DayChart({ modData }: { modData: ModuleInfo[] }) {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
+        {/*
         <div className="flex gap-2 font-medium leading-none">
           Trending up by 5.2% this month <TrendingUp className="h-4 w-4"/>
         </div>
         <div className="leading-none text-muted-foreground">
           Showing weekly workload
         </div>
+        */}
       </CardFooter>
     </Card>
   )

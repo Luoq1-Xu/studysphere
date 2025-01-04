@@ -92,7 +92,7 @@ export function EventForm({
                 control={control}
                 name="isRecurring"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="flex flex-col" id="isRecurring">
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="recurring-switch"
@@ -118,8 +118,8 @@ export function EventForm({
                     name="startDateAndTime"
                     rules={{ required: "Start date/time is required." }}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date & Time (12h)</FormLabel>
+                      <FormItem id="start-date-time">
+                        <FormLabel htmlFor="start-date-time">Start Date & Time (12h)</FormLabel>
                         <FormControl>
                           <DateTimePicker
                             hourCycle={12}
@@ -146,8 +146,8 @@ export function EventForm({
                       }
                      }}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date & Time (12h)</FormLabel>
+                      <FormItem id="end-date-time">
+                        <FormLabel htmlFor="end-date-time">End Date & Time (12h)</FormLabel>
                         <FormControl>
                           <DateTimePicker
                             hourCycle={12}
@@ -172,10 +172,10 @@ export function EventForm({
                     name="dayOfWeek"
                     rules={{ required: "A day of the week is required." }}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Recurring Day</FormLabel>
+                      <FormItem id="day-of-week">
+                        <FormLabel htmlFor="day-of-week">Recurring Day</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} name="dayOfWeek">
                             <SelectTrigger>
                               <SelectValue placeholder="Select Day" />
                             </SelectTrigger>
@@ -199,7 +199,7 @@ export function EventForm({
                     name="recurringStartTime"
                     rules={{ required: "Recurring start time is required." }}
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem id="recurring-start-time">
                         <TimePicker {...field} label="Recurring Start Time" />
                       </FormItem>
                     )}
@@ -220,7 +220,7 @@ export function EventForm({
                       },
                     }}
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem id="recurring-end-time">
                         <TimePicker {...field} label="Recurring End Time" />
                       </FormItem>
                     )}
@@ -234,10 +234,10 @@ export function EventForm({
                 name="eventName"
                 rules={{ required: "An event name is required." }}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem id="event-name">
                     <FormLabel>Event Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="name" {...field} />
+                      <Input id="eventName" placeholder="name" {...field} />
                     </FormControl>
                     <FormDescription>
                       Enter a name for the event.
@@ -253,10 +253,10 @@ export function EventForm({
                 name="eventDescription"
                 rules={{ required: "Event description is required." }}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem id="event-description">
                     <FormLabel>Event Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="description" {...field} />
+                      <Input id="eventDescription" placeholder="description" {...field} />
                     </FormControl>
                     <FormDescription>
                       Enter a description for the event.
@@ -272,10 +272,10 @@ export function EventForm({
                 name="eventLocation"
                 rules={{ required: "Event location is required." }}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem id="event-location">
                     <FormLabel>Location</FormLabel>
                     <FormControl>
-                      <Input placeholder="location" {...field} />
+                      <Input id="eventLocation" placeholder="location" {...field} />
                     </FormControl>
                     <FormDescription>
                       Enter a location for the event.

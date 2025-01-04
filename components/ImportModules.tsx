@@ -32,7 +32,7 @@ export function ImportModules({ onUrlImport }: CourseSelectorProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="w-full">
           Import Modules from
           <Image src="/nusmods.png" alt="NUSMods" width={60} height={60}/>  
         </Button>

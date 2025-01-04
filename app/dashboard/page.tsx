@@ -12,6 +12,29 @@ import { ModuleSelector } from "@/components/ModuleSelector";
 import { DayChart } from "@/components/DayChart";
 import { UpcomingEvents } from "@/components/UpcomingEvents";
 import { SelectedModulesCard } from "@/components/SelectedModulesCard";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+
+const CHOSENSEMESTER = 0; // 0-indexed - Sem 1 is 0 and Sem 2 is 1
+
+type SemesterData = {
+    selectedCourses: Module[];
+    events: EventEntry[];
+    modInfoList: ModuleInfo[];
+};
+
+const initialSemesterData: { [key: number]: SemesterData } = {
+    0: {
+      selectedCourses: [],
+      events: [],
+      modInfoList: [],
+    },
+    1: {
+      selectedCourses: [],
+      events: [],
+      modInfoList: [],
+    },
+};
 
 export default function Page() {
 
@@ -21,12 +44,16 @@ export default function Page() {
     // importUrl -> URL to import modules
 
     const name = "StudySphere";
-    const CHOSENSEMESTER = 0; // 0-indexed - Sem 1 is 0 and Sem 2 is 1
-    const [selectedCourses, setSelectedCourses] = useState<Module[]>([]);
+
+    const [semesterData, setSemesterData] = useState<{ [key: number]: SemesterData }>(initialSemesterData);
+    const [chosenSemester, setChosenSemester] = useState<number>(0); // 0 or 1
+    const prevSemesterRef = useRef<number>(chosenSemester);
     const [importUrl, setImportUrl] = useState<string | null>(null);
-    const [events, setEvents] = useState<EventEntry[]>([]);
-    const [modInfoList, setModInfoList] = useState<ModuleInfo[]>([]);
     const prevSelectedCoursesRef = useRef<Module[]>([]);
+
+    const selectedCourses = semesterData[chosenSemester].selectedCourses as Module[];
+    const events = semesterData[chosenSemester].events as EventEntry[];
+    const modInfoList = semesterData[chosenSemester].modInfoList as ModuleInfo[];
 
     // Fetch module info from the API
     const fetchModuleInfo = async (moduleCode: string): Promise<RawModuleInfo> => {
@@ -69,60 +96,99 @@ export default function Page() {
                 }
             }) as ModuleInfo[];
 
-            console.log("PROCESSED DATA");
-            console.log(processedData);
+            // Merge newly processed modules into existing modInfoList for current semester
+            setSemesterData((prev) => {
+                const next = { ...prev };
+                next[chosenSemester] = {
+                ...next[chosenSemester],
+                modInfoList: [...next[chosenSemester].modInfoList, ...processedData],
+                };
+                return next;
+            });
 
-            setModInfoList((prevData) => [...prevData, ...processedData]);
-
-            console.log("CHANGED")
         } catch (error) {
             console.error("Error fetching module info somewhere:", error);
         }
     };
 
     // Handle course selection
-    const handleCourseSelect = (course: Module) => {
-        setSelectedCourses((prevCourses) => {
-          // Check if the course already exists in the array
-          if (prevCourses.some((c) => c.code === course.code)) {
-            return prevCourses; // Return the previous array if the course already exists
+    function handleCourseSelect(course: Module) {
+        setSemesterData((prev) => {
+          const next = { ...prev };
+          const courses = next[chosenSemester].selectedCourses;
+          // Only add if the course is not already in the list
+          if (!courses.some((c) => c.code === course.code)) {
+            next[chosenSemester] = {
+              ...next[chosenSemester],
+              selectedCourses: [...courses, course],
+            };
           }
-          prevSelectedCoursesRef.current = prevCourses;
-          return [...prevCourses, course]; // Add the new course to the array
+          return next;
         });
-    };
+      }
 
     // Handle event creation
-    const handleEventAdd = (event: EventEntry) => {
-        setEvents((prevEvents) => [...prevEvents, event]);
-        console.log("Event added:", event);
-        console.log("Events:", events);
-    };
+    function handleEventAdd(event: EventEntry) {
+        setSemesterData((prev) => {
+          const next = { ...prev };
+          next[chosenSemester] = {
+            ...next[chosenSemester],
+            events: [...next[chosenSemester].events, event],
+          };
+          return next;
+        });
+      }
 
+    // Handle event operations (add, update, remove)
     const handleEventOperation = (
         operation: string,
         event: EventEntry,
         modifiedEvent?: EventEntry
     ) => {
+        setSemesterData((prev) => {
+        const next = { ...prev };
+        let oldEvents = next[chosenSemester].events;
+
         if (operation === "add") {
-            setEvents((prevEvents) => [...prevEvents, event]);
+            oldEvents = [...oldEvents, event];
         } else if (operation === "update" && modifiedEvent) {
-            setEvents((prevEvents) => prevEvents.map((e) => e === event ? modifiedEvent : e));
+            oldEvents = oldEvents.map((e) => (e === event ? modifiedEvent : e));
         } else if (operation === "remove") {
-            setEvents((prevEvents) => prevEvents.filter((e) => e !== event));
+            oldEvents = oldEvents.filter((e) => e !== event);
         }
-    }
+
+        next[chosenSemester] = {
+            ...next[chosenSemester],
+            events: oldEvents,
+        };
+        return next;
+        });
+    };
 
     // Handle modules import from NUSMods
     const handleModuleImport = (url: string) => {
-        console.log(url);
         setImportUrl(url);
     };
 
     // Use useEffect to update modInfoList when selectedCourses changes
     useEffect(() => {
+
+        // If user is just changing the semester, do nothing
+        if (prevSemesterRef.current !== chosenSemester) {
+            prevSemesterRef.current = chosenSemester;
+            prevSelectedCoursesRef.current = selectedCourses;
+            // Do nothing on semester change
+            return;
+        }
+
+
         if (selectedCourses.length === 0) {
-            setModInfoList([]);
+            // If no courses selected, clear modInfoList for this semester
+            setSemesterData((prev) => {
+              const next = { ...prev };
+              next[chosenSemester].modInfoList = [];
+              return next;
+            });
         }
 
         // Check for added/removed courses
@@ -137,8 +203,17 @@ export default function Page() {
 
         // Remove info for removed courses
         if (removedCourses.length > 0) {
-            setModInfoList((prevData) => prevData.filter((data) => !removedCourses.some((course) => course.code === data.moduleCode)));
+            setSemesterData((prev) => {
+            const next = { ...prev };
+            next[chosenSemester].modInfoList = next[chosenSemester].modInfoList.filter(
+                (data) => !removedCourses.some((course) => course.code === data.moduleCode)
+            );
+            return next;
+            });
         }
+
+        // Update the prevSelectedCoursesRef
+        prevSelectedCoursesRef.current = selectedCourses;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCourses]);
@@ -147,17 +222,31 @@ export default function Page() {
     useEffect(() => {
         if (importUrl) {
         (async () => {
-
             try {
                 // Fetch ModuleInfo from urlToModInfo API
                 const response = await fetch(`/api/urlToModInfo?url=${importUrl}`);
                 if (!response.ok) {
                     throw new Error("Parsing URL Failed");
                 }
-                const parsedModules = await response.json();
+                const parsedModules: ModuleInfo[] = await response.json();
+                const newSelectedCourses = parsedModules.map((mod) => ({
+                    code: mod.moduleCode,
+                    title: mod.title,
+                    semesters: mod.semesterData.map((sem) => sem.semester).toString(), // Ensure semesters property is included
+                }))
 
-                // Override the existing modInfoList
-                setModInfoList(parsedModules);
+                prevSelectedCoursesRef.current = newSelectedCourses; // To prevent useEffect from duplicating and trying to add modInfo again
+
+                // Override the existing modInfoList for the current semester
+                setSemesterData((prev) => {
+                    const next = { ...prev };
+                    next[chosenSemester] = {
+                        ...next[chosenSemester],
+                        modInfoList: parsedModules,
+                        selectedCourses: newSelectedCourses as Module[], // Update selectedCourses as well
+                    };
+                    return next;
+                });
 
                 // Clear the importUrl after processing
                 setImportUrl(null);
@@ -211,9 +300,10 @@ export default function Page() {
             */}
         })();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [importUrl]);
 
-    // Update Events when modInfoList changes
+    // Update Events when modInfoList changes, regenerating the events
     useEffect(() => {
         const COLOURS = ['coral', 'yellow', 'pink', 'green', 'blue', 'purple', 'teal', 'gray', 'rose']
 
@@ -245,35 +335,74 @@ export default function Page() {
             });
         });
 
-        setEvents((prevEvents) => {
-            // 1) Filter out only user-created events (assuming user-created events have a type property set to 'user')
-            const userEvents = prevEvents.filter((e) => e.type === 'user');
-        
-            // 2) Combine user events with newly generated module-based events
-            return [...userEvents, ...newEvents];
+        // Filter out the user events and recombine with the new events
+        setSemesterData((prev) => {
+            const next = { ...prev };
+            const userEvents = next[chosenSemester].events.filter((ev) => ev.type === "user");
+            next[chosenSemester].events = [...userEvents, ...newEvents];
+            return next;
           });
 
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [modInfoList]);
 
-    const handleModCardClick = (module: ModuleInfo, operation: string) => {
-        if (operation === "remove") {
-            setModInfoList((prevData) => prevData.filter((data) => data.moduleCode !== module.moduleCode));
-            setSelectedCourses((prevCourses) => prevCourses.filter((course) => course.code !== module.moduleCode));
-        }
-    }
+    // Card click handler (remove or updateLesson)
+    const handleModCardClick = (module: ModuleInfo, operation: string, newModuleInfo?: ModuleInfo) => {
+        setSemesterData((prev) => {
+            const next = { ...prev };
+
+            if (operation === "remove") {
+                // Remove from modInfoList
+                next[chosenSemester].modInfoList = next[chosenSemester].modInfoList.filter(
+                (data) => data.moduleCode !== module.moduleCode
+                );
+                // Remove from selectedCourses
+                next[chosenSemester].selectedCourses = next[chosenSemester].selectedCourses.filter(
+                (course) => course.code !== module.moduleCode
+                );
+            } else if (operation === "updateLesson" && newModuleInfo) {
+                // Replace old module data with new
+                next[chosenSemester].modInfoList = next[chosenSemester].modInfoList.map((data) =>
+                data.moduleCode === module.moduleCode ? newModuleInfo : data
+                );
+            }
+
+            return next;
+        });
+    };
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-beige p-5">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-row justify-start gap-4 sm:grid-cols-1">
-                <CreateEvent onEventAdd={handleEventAdd}/>
-                <ImportModules onUrlImport={handleModuleImport}/>
+            <div className="container mx-auto sm:px-6 lg:px-8 gap-4 grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                <div className="col-span-1">
+                    <CreateEvent onEventAdd={handleEventAdd}/>
+                </div>
+                <div className="col-span-1">
+                    <ImportModules onUrlImport={handleModuleImport}/>
+                </div>
+                <div className="col-span-1">
+                    <Select
+                        onValueChange={(value: string) => setChosenSemester(parseInt(value, 10))}
+                        value={chosenSemester.toString()}
+                    >
+                        <SelectTrigger className="bg-white w-full">
+                            <SelectValue placeholder="Select Semester"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem value="0">Semester 1</SelectItem>
+                                <SelectItem value="1">Semester 2</SelectItem>
+                            </SelectGroup>
+                        </SelectContent>        
+                    </Select>
+                </div>                
             </div>
-            <div className="container mx-auto sm:px-6 lg:px-8 sm:p-4 lg:p-6">
+            <div className="container mx-auto sm:px-6 p-6">
                 <h1 className="text-2xl sm:text-4xl font-bold">Dashboard</h1>
-                <p className="text-base sm:text-lg text-center sm:text-left">Welcome back, {name}.</p>
+                <p className="text-base sm:text-lg sm:text-left">Welcome back, {name}.</p>
             </div>
-            <div className="container mx-auto sm:px-6 lg:px-8">
+            <div className="container mx-auto sm:px-6">
                 <div className="flex flex-1 flex-col gap-4 md:gap-8 py-3">
                     <div className="grid gap-4 md:grid-cols-1">
                         <WeeklyCalendar events={events}/>
@@ -283,7 +412,20 @@ export default function Page() {
                     <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
                         <div className="col-span-full">
                             <div className="flex flex-col sm:flex-row items-start justify-start gap-4">
-                                <ClearCourses setSelectedCourses={setSelectedCourses} />
+                            <ClearCourses
+                                setSelectedCourses={() =>
+                                    setSemesterData((prev) => {
+                                    // Clears out the currently chosen semester’s courses
+                                    const next = { ...prev };
+                                    next[chosenSemester].selectedCourses = [];
+                                    next[chosenSemester].modInfoList = [];
+                                    next[chosenSemester].events = next[chosenSemester].events.filter(
+                                        (ev) => ev.type === "user"
+                                    );
+                                    return next;
+                                    })
+                                }
+                                />
                                 <ModuleSelector onCourseSelect={handleCourseSelect} />
                             </div>
                         </div>

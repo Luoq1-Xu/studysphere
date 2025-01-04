@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button'
 import { EventCard } from '@/components/EventCard'
 import { convertToHour } from '@/lib/utils'
 import { ModuleSchedule } from '@/lib/types'
-import { Switch } from './ui/switch'
-import { Label } from './ui/label'
+import { Switch } from '../ui/switch'
+import { Label } from '../ui/label'
 
 interface Event {
   id: string

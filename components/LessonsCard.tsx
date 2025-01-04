@@ -1,13 +1,17 @@
 import { ModuleInfo } from "@/lib/types";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 
 export function LessonsCard({ data }: { data: ModuleInfo[] }) {
 
+
+
     return (
         <Card className="w-full">
-            <CardHeader>Lessons</CardHeader>
+            <CardHeader>
+                <CardTitle>Lessons</CardTitle>
+            </CardHeader>
             <CardContent>
                 <Table>
                     <TableCaption>Modules and Classes</TableCaption>
@@ -26,8 +30,8 @@ export function LessonsCard({ data }: { data: ModuleInfo[] }) {
                                 {modData.title}
                             </TableCell>
                             <TableCell>
-                            {modData.selectedLessons.map((lesson) => (
-                                <div key={modData.moduleCode + lesson.lessonType + lesson.day + lesson.startTime}>
+                            {modData.selectedLessons.map((lesson, index) => (
+                                <div key={lesson.classNo + index}>
                                     {lesson.lessonType}: {lesson.classNo}
                                 </div>
                             ))}

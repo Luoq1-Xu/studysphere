@@ -16,7 +16,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({ name, label, description
   const { control } = useFormContext();
 
   return (
-    <FormItem>
+    <FormItem id="time-picker">
       <FormLabel>{label}</FormLabel>
       <FormControl>
         <div className="flex space-x-2">

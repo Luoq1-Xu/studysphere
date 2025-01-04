@@ -3,7 +3,6 @@
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { useQuery } from "react-query"
-import { FixedSizeList as List } from "react-window"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

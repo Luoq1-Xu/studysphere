@@ -1,6 +1,6 @@
 import { ModuleInfo } from "@/lib/types";
-import { ModuleSelectCard } from "./ModuleSelectCard";
 import { Card, CardContent, CardHeader } from "./ui/card";
+import { PopModuleSelectCard } from "./PopModuleSelectCard";
 
 
 export function SelectedModulesCard({ 
@@ -19,8 +19,8 @@ export function SelectedModulesCard({
             <CardContent>
                 <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                     {modInfoList?.map((module, index) => (
-                        <ModuleSelectCard 
-                            key={module.moduleCode}  
+                        <PopModuleSelectCard
+                            key={module.moduleCode + index}  
                             modInfo={module}
                             index={index}
                             onClick={ handleModCardClick } />

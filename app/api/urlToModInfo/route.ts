@@ -75,14 +75,29 @@ export async function GET(request: Request) {
                 // Expanded lesson type
                 const fullLessonType = LESSONMAPPINGS[lessonType];
 
+                // Check if lesson type exists
+                if (fullLessonType === undefined) {
+                    console.log('Lesson type not found:', lessonType);
+                    return [];
+                }
+
                 // 0-indexed semester
-                const lessonTypeDetails = modDetails.semesterData[semester - 1].timetable.find((lesson) => lesson.lessonType === fullLessonType);
+                const lessonTypeDetails = modDetails
+                                            .semesterData
+                                            .find((semesterData) => semesterData.semester === parseInt(semester, 10))!
+                                            .timetable.find((lesson) => lesson.lessonType === fullLessonType);
                 if (!lessonTypeDetails) {
+                    console.log('Lesson type details not found for lesson type:', lessonType);
+                    console.log(modDetails.moduleCode, fullLessonType, lessonNumber);
+                    console.log(modDetails.title);
                     throw new Error(`Lesson type details not found for lesson type: ${lessonType}`);
                 }
         
                 const lessonDetails = lessonTypeDetails.lessons.filter((lesson) => lesson.classNo === lessonNumber);
                 if (!lessonDetails) {
+                    console.log('Lesson details not found for class number:', lessonNumber);
+                    console.log(modDetails.moduleCode, fullLessonType, lessonNumber);
+                    console.log(modDetails.title);
                     throw new Error(`Lesson details not found for class number: ${lessonNumber}`);
                 }
         

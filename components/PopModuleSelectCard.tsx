@@ -2,13 +2,12 @@ import { ModuleInfo } from "@/lib/types";
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Book, ClipboardCheck } from "lucide-react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 
-export function ModuleSelectCard({ 
+export function PopModuleSelectCard({ 
     modInfo,
     index,
     onClick 
@@ -77,8 +76,8 @@ export function ModuleSelectCard({
     ).sort((a, b) => a.localeCompare(b));
     
     return (
-        <Dialog>
-            <DialogTrigger asChild>
+        <Popover>
+            <PopoverTrigger asChild>
                 <Card className="w-full max-w-md bg-white shadow-md rounded-lg overflow-hidden transition-all ease-in-out duration-300 hover:shadow-xl">
                     <a rel="noopener noreferrer">
                         <CardHeader>
@@ -104,57 +103,60 @@ export function ModuleSelectCard({
                         </CardContent>
                     </a>
                 </Card>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{modInfo.title}</DialogTitle>
-                    <DialogDescription>{modInfo.moduleCode}</DialogDescription>
-                </DialogHeader>
-                <p className="leading-7 [&:not(:first-child)]:mt-3">
-                    {modInfo.description}
-                </p>
-                <div className="grid sm:grid-cols-1 gap-4 pt-3">
-                    {/* One Select for each unique lessonType */}
-                    {uniqueLessonTypes.map((lessonType) => {
-                    // Grab the first selected lesson with this type for initial placeholder
-                    const firstSelected = modInfo.selectedLessons.find(
-                        (l) => l.lessonType === lessonType
-                    );
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col h-full w-full max-w-md">
+                <div className="flex-1">
+                    <div className="space-y-2">
+                        <h4 className="font-medium leading-none">{modInfo.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                            {modInfo.moduleCode}
+                        </p>
+                    </div>
+                    <p className="leading-7 [&:not(:first-child)]:mt-3">
+                        {modInfo.description}
+                    </p>
+                    <div className="grid sm:grid-cols-1 gap-4 pt-3">
+                        {/* One Select for each unique lessonType */}
+                        {uniqueLessonTypes.map((lessonType) => {
+                        // Grab the first selected lesson with this type for initial placeholder
+                        const firstSelected = modInfo.selectedLessons.find(
+                            (l) => l.lessonType === lessonType
+                        );
 
-                    const availableLessons = modInfo.semesterData
-                                            .find((data) => data.semester === SEMESTER)
-                                            ?.timetable.find((data) => data.lessonType === lessonType)
-                                            ?.lessons.sort((a, b) => Number(a.classNo) - Number(b.classNo)) ?? [];
+                        const availableLessons = modInfo.semesterData
+                                                .find((data) => data.semester === SEMESTER)
+                                                ?.timetable.find((data) => data.lessonType === lessonType)
+                                                ?.lessons.sort((a, b) => Number(a.classNo) - Number(b.classNo)) ?? [];
 
-                    return (
-                        <Select
-                        key={lessonType}
-                        onValueChange={(newClassNo) =>
-                            handleLessonChange(lessonType, newClassNo)
-                        }
-                        >
-                        <SelectTrigger className="w-full">
-                            <SelectValue
-                                placeholder={`${lessonType} ${firstSelected?.classNo ?? ""}`}
-                            />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                            {availableLessons.map((entry, idx) => (
-                                <SelectItem key={idx} value={entry.classNo}>
-                                    {entry.lessonType} {entry.classNo}
-                                </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                        </Select>
-                    );
-                    })}
+                        return (
+                            <Select
+                            key={lessonType}
+                            onValueChange={(newClassNo) =>
+                                handleLessonChange(lessonType, newClassNo)
+                            }
+                            >
+                            <SelectTrigger className="w-full">
+                                <SelectValue
+                                    placeholder={`${lessonType} ${firstSelected?.classNo ?? ""}`}
+                                />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                {availableLessons.map((entry, idx) => (
+                                    <SelectItem key={idx} value={entry.classNo}>
+                                        {entry.lessonType} {entry.classNo}<br/>
+                                        {entry.day}   {entry.startTime} - {entry.endTime}
+                                    </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                            </Select>
+                        );
+                        })}
+                    </div>
                 </div>     
-                <DialogFooter>
-                    <Button className="w-full" variant="destructive" onClick={() => handleClick("remove")}>Remove Mod</Button>
-                </DialogFooter>           
-            </DialogContent>           
-        </Dialog>
+                <Button className="w-full mt-10" variant="destructive" onClick={() => handleClick("remove")}>Remove Mod</Button>        
+            </PopoverContent>           
+        </Popover>
     )
 }
